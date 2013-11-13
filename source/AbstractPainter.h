@@ -25,6 +25,7 @@ public:
     ,   PaintMode2
     ,   PaintMode3
     ,   PaintMode4
+    ,   PaintMode4Water
     ,   PaintMode5
     ,   PaintMode6
     ,   PaintMode7

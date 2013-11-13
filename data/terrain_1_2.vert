@@ -5,9 +5,9 @@
 uniform mat4 transform;
 uniform sampler2D height;
 
-// in ### a_vertex;
+in vec3 a_vertex;
 
-// out ... ;
+out float color;
 
 void main()
 {
@@ -19,7 +19,9 @@ void main()
 	
 	// ...
 
-	gl_Position = transform * vec4(0.0, 0.0, 0.0, 1.0);
+	color = texture2D(height, a_vertex.xz).r;
+
+	gl_Position = transform * vec4(a_vertex+vec3(0.0,color,0.0), 1.0);
 	
 	// Task_1_2 - ToDo End
 }

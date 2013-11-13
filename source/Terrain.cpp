@@ -11,7 +11,7 @@ Terrain::Terrain(
 	unsigned short size
 ,	OpenGLFunctions & gl)
 : m_vertices(QOpenGLBuffer::VertexBuffer)
-, m_indices(QOpenGLBuffer::IndexBuffer  )
+, m_indices(QOpenGLBuffer::IndexBuffer)
 {
 	m_vao.create();
 	m_vao.bind();
@@ -28,7 +28,7 @@ Terrain::Terrain(
 
     // Configure your Vertex Attribute Pointer based on your vertex buffer (mainly number of coefficients ;)).
 
-    gl.glVertexAttribPointer(0, 0, GL_FLOAT, GL_FALSE, sizeof(float)* 0, nullptr);
+    gl.glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     gl.glEnableVertexAttribArray(0);
 
     // Task_1_1 - ToDo End
@@ -47,12 +47,21 @@ void Terrain::draw(
 
     // gl.glEnable(...
     // ...
+    gl.glEnable(GL_COLOR_ARRAY);
+    gl.glEnable(GL_VERTEX_ARRAY);
+    gl.glEnable(GL_PRIMITIVE_RESTART);
+
+    gl.glPrimitiveRestartIndex(-1);
 
     m_vao.bind();
-    // gl.glDrawElements(...);
+    gl.glDrawElements(mode, m_indices.size(), GL_UNSIGNED_INT, 0);
     m_vao.release();
 
+
     // Remember to "clean up" the state after rendering.
+    gl.glDisable(GL_COLOR_ARRAY);
+    gl.glDisable(GL_VERTEX_ARRAY);
+    gl.glDisable(GL_PRIMITIVE_RESTART);
 
     // gl.glDisable(...
     // ...
@@ -76,13 +85,33 @@ void Terrain::strip(
 
     // ...
 
-	//vertices.bind();
-	//vertices.allocate(...);
+    std::vector<float> *verticeVector = new std::vector<float>;
+    verticeVector->reserve(size*size*3);
+    for(ushort ix=0; ix<size; ++ix)
+        for(ushort iy=0; iy<size; ++iy){
+            verticeVector->push_back(float(ix)/float(size-1));
+            verticeVector->push_back(0.f);
+            verticeVector->push_back(float(iy)/float(size-1));
+        }
 
+	vertices.bind();
+	vertices.allocate(verticeVector->data(), sizeof(float)*verticeVector->size());
 	// ...
 
-	//indices.bind();
-	//indices.allocate(...);
 
-    // Task_1_1 - ToDo End
+    std::vector<uint> *indexVector = new std::vector<uint>;
+    indexVector->reserve((size-1)*(1+2*size));
+
+    for(uint ix=0; ix<uint(size-1); ++ix){
+        for(uint iy=0; iy<uint(size); ++iy){
+            indexVector->push_back(ix+iy*size);
+            indexVector->push_back(ix+iy*size+1);
+        }
+        indexVector->push_back(primitiveRestartIndex);
+    }
+
+	indices.bind();
+	indices.allocate(indexVector->data(),sizeof(uint)*indexVector->size());
+
+    //Task_1_1 - ToDo End
 }
