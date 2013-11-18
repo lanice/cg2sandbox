@@ -29,9 +29,9 @@ vec4 env(in vec3 eye)
 		float y = 2.0*asin(-eye.y)/c_pi;
 		// use texture function with the envmap sampler
 		vec4 texColor = texture2D(envmap, vec2(x,y));
-		vec4 floorColor = vec4(0.4,0.4,0.4,1.0);
+		vec4 floorColor = vec4(0.5,0.5,0.7,1.0);
 
-		color = mix(floorColor, texColor, smoothstep(-0.3,0.3, eye.y));
+		color = mix(floorColor, texColor, smoothstep(0.0,0.08, eye.y));
 	}	
 	else if(2 == mapping) 	// paraboloid
 	{
