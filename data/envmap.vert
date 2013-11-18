@@ -2,8 +2,8 @@
 
 // Task_2_1 - ToDo Begin
 
-//uniform mat4 ...
-
+uniform mat4 cameraView;
+uniform mat4 viewProjection;
 
 in vec2 a_vertex;
 
@@ -15,14 +15,13 @@ void main()
 	// the vertices eye vector (basically the view frustums edges
 	// pointing towards +z) that need to be passed to
 	// the fragment stage for accessing the various projection
-	// mappings. 
+	// mappings.
 		
-	v_eye = (vec4(a_vertex, 0.0, 1.0)).xyz;
+	v_eye = (viewProjection * vec4(a_vertex, 1.0, 1.0)).xyz;
 
 	// Task_2_1 - ToDo End
 	
 	// Note: z is already at z = 1.0 (back plane in NDC)
 	
-	gl_Position = vec4(a_vertex, 1.0, 1.0);
+	gl_Position = vec4(a_vertex, -1.0, 1.0);
 }
-  
