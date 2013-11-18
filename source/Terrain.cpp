@@ -113,5 +113,7 @@ void Terrain::strip(
 	indices.bind();
 	indices.allocate(indexVector->data(),sizeof(uint)*indexVector->size());
 
+    delete verticeVector;
+    delete indexVector;
     //Task_1_1 - ToDo End
 }
