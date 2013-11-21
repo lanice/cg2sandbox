@@ -23,5 +23,5 @@ void main()
 	
 	// Note: z is already at z = 1.0 (back plane in NDC)
 	
-	gl_Position = vec4(a_vertex, -1.0, 1.0);
+	gl_Position = vec4(a_vertex, 1.0, 1.0);
 }

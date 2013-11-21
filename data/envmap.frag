@@ -12,7 +12,7 @@ in vec3 v_eye;
 // Task_2_1 - ToDo Begin
 // Implement the four requested projection mappings.
 
- const float c_pi  = 3.1415926535897932384626433832795;
+ const float c_pi  = 3.14159;
 
 vec4 env(in vec3 eye)
 {

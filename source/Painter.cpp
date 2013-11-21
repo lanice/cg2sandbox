@@ -375,7 +375,6 @@ void Painter::update(const QList<QOpenGLShaderProgram *> & programs)
                 // Set required matrix/matrices of the vertex shader...
                 // Note: use the camera()-> ... matrices here (e.g., view, projection, or inverted, etc..)
 
-                program->setUniformValue("cameraView", camera()->view());
                 program->setUniformValue("viewProjection", camera()->viewProjectionInverted());
                 //...
 
@@ -656,13 +655,16 @@ void Painter::paint_2_1_envmap(
 
     // ToDo: configure depth state here
 
+    glDepthFunc(GL_EQUAL);
     glDepthMask(GL_FALSE);
+
 
     program->bind();
     m_quad->draw(*this);
     program->release();
 
     glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LESS);
     // ToDo: cleanup depth state here
 
     // Task_2_1 - ToDo End
