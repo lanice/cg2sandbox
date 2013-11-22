@@ -68,7 +68,7 @@ void main()
 	
 	// float frsl = ...;
 
-	vec4 refl = env(vec3(r.x,r.y,r.z));
+	vec4 refl = env(r);
 	//vec4 refr = env(q);
 	
 	fragColor = vec4(refl);
