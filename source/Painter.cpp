@@ -73,15 +73,15 @@ bool Painter::initialize()
 
     glClearColor(1.f, 1.f, 1.f, 0.f);
 
-    m_transforms << QMatrix4x4();
-    m_transforms[0].scale(16.f, 2.f, 16.f);
-    m_transforms[0].translate(-.5f, 0.f, -.5f);
+     m_transforms << QMatrix4x4();
+     m_transforms[0].scale(16.f, 2.f, 16.f);
+     m_transforms[0].translate(-.5f, 0.f, -.5f);
 
     m_terrains << new Terrain(8, *this);
 
-    m_transforms << QMatrix4x4();
-    m_transforms[1].scale(2.f, 0.4f, 2.f);
-    m_transforms[1].translate(-.5f, 0.f, -.5f);
+    // m_transforms << QMatrix4x4();
+    // m_transforms[1].scale(2.f, 0.4f, 2.f);
+    // m_transforms[1].translate(-.5f, 0.f, -.5f);
 
     m_terrains << new Terrain(256, *this);
     m_terrains << new Terrain(2, *this); // this should give you a plane that you might use as a water plane ;)
@@ -400,8 +400,7 @@ void Painter::update(const QList<QOpenGLShaderProgram *> & programs)
                 // Note: for the sphere you might need other matrices than
                 // for the screen aligned quad...
 
-                program->setUniformValue("transform", m_transforms[1]);
-                //program->setUniformValue("...", camera()->...);
+                program->setUniformValue("viewProjection", camera()->viewProjectionInverted());
                 // ...?
 
                 // Task_2_2 - ToDo End

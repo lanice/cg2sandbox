@@ -2,7 +2,6 @@
 
 // Task_2_1 - ToDo Begin
 
-uniform mat4 cameraView;
 uniform mat4 viewProjection;
 
 in vec2 a_vertex;
