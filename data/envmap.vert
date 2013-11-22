@@ -2,7 +2,6 @@
 
 // Task_2_1 - ToDo Begin
 
-uniform mat4 cameraView;
 uniform mat4 viewProjection;
 
 in vec2 a_vertex;
@@ -23,5 +22,5 @@ void main()
 	
 	// Note: z is already at z = 1.0 (back plane in NDC)
 	
-	gl_Position = vec4(a_vertex, -1.0, 1.0);
+	gl_Position = vec4(a_vertex, 1.0, 1.0);
 }
