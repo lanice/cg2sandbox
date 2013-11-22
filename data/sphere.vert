@@ -17,7 +17,7 @@ void main()
 
 	// ToDo: Retrive the eye vector and pass to next stage
 	
-	v_eye = (viewProjection * vec4(a_vertex,2.0)).xyz;
+	v_eye = (viewProjection * vec4(a_vertex, 2.0)).xyz;
 	gl_Position = transform * vec4(a_vertex, 1.0);
 }
 

@@ -612,12 +612,14 @@ void Painter::bindEnvMaps(GLenum target)
         glActiveTexture(target);
         glEnable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, m_envmaps[m_mapping]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     }
     else
     {
         glActiveTexture(target + 1);
         glEnable(GL_TEXTURE_CUBE_MAP);
         glBindTexture(GL_TEXTURE_CUBE_MAP, m_envmaps[m_mapping]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_CUBE_MAP, GL_REPEAT);
     }
 }
 

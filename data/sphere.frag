@@ -64,15 +64,15 @@ void main()
 	vec3 e = normalize(v_eye);
 	
 	vec3 r = reflect(-e,n);
-	//vec3 q = refract(n,e);
+	vec3 q = refract(-e,n,1.1);
 	
-	// float frsl = ...;
+	float frsl = smoothstep(0.5,1.5,length(e+r));
 
-	vec4 refl = env(r);
-	//vec4 refr = env(q);
+	vec4 refr = env(r);
+	vec4 refl = env(q);
 	
-	fragColor = vec4(refl);
-	//fragColor = vec4(e,0);
+	fragColor = mix(refr,refl,frsl);
+	//fragColor = vec4(vec3(length(e+r)/2),1.0);
 }
 
 // Task_2_2 - ToDo End
