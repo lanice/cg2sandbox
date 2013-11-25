@@ -375,7 +375,7 @@ void Painter::update(const QList<QOpenGLShaderProgram *> & programs)
                 // Set required matrix/matrices of the vertex shader...
                 // Note: use the camera()-> ... matrices here (e.g., view, projection, or inverted, etc..)
 
-                program->setUniformValue("viewProjection", camera()->viewProjectionInverted());
+                program->setUniformValue("viewProjectionInverted", camera()->viewProjectionInverted());
                 //...
 
                 // Task_2_1 - ToDo End
@@ -400,7 +400,7 @@ void Painter::update(const QList<QOpenGLShaderProgram *> & programs)
                 // Note: for the sphere you might need other matrices than
                 // for the screen aligned quad...
 
-                program->setUniformValue("viewProjection", camera()->viewProjectionInverted());
+                program->setUniformValue("viewProjectionInverted", camera()->viewProjectionInverted());
                 // ...?
 
                 // Task_2_2 - ToDo End

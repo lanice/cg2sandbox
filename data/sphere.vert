@@ -2,7 +2,7 @@
 
 // Task_2_2 - ToDo Begin
 
-uniform mat4 viewProjection;
+uniform mat4 viewProjectionInverted;
 uniform mat4 transform;
 // ...
 
@@ -17,7 +17,7 @@ void main()
 
 	// ToDo: Retrive the eye vector and pass to next stage
 	
-	v_eye = (viewProjection * vec4(a_vertex, 2.0)).xyz;
+	v_eye = (viewProjectionInverted * vec4(a_vertex, 2.0)).xyz;
 	gl_Position = transform * vec4(a_vertex, 1.0);
 }
 
