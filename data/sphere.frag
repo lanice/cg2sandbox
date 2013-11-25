@@ -58,6 +58,16 @@ vec4 env(in vec3 eye)
 	return color;
 }
 
+
+/*
+	Bei dem hier angewandten Verfahren wird nicht die gesamte Umgebung
+	gespiegelt bzw. gebrochen dargestellt, sondern nur die Hintergrundtextur.
+
+	Außerdem ist die Darstellung der Refraktion nicht ganz korrekt,
+	da nur der Eintritt des Lichts in die Kugel (Vorderseite) berücksichtigt wird,
+	nicht aber der Austritt (Rückseite).
+*/
+
 void main()
 {
 	vec3 n = normalize(v_normal);
