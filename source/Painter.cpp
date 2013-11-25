@@ -344,15 +344,6 @@ void Painter::update(const QList<QOpenGLShaderProgram *> & programs)
 
                 break;
 
-            case WaterProgram:
-                program->setUniformValue("water",   2);
-
-            case TerrainProgram:
-                program->setUniformValue("caustics",   3);
-                program->setUniformValue("ground", 1);
-                program->setUniformValue("height", 0);
-                break;
-
             case SphereCubeProgram:
                 program->setUniformValue("source", 2);
 
@@ -375,27 +366,30 @@ void Painter::update(const QList<QOpenGLShaderProgram *> & programs)
 
                 break;
 
-            //case TerrainCubeProgram:
-            //    {
-            //    // Task_2_3 - ToDo Begin
+            case TerrainCubeProgram:
+               {
+               // Task_2_3 - ToDo Begin
 
-            //    // Provide the appropriate matrices to the geometry shader.
+               // Provide the appropriate matrices to the geometry shader.
 
-            //    /*QMatrix4x4 transforms[6] = 
-            //    {
-            //        ...
-            //    };*/
-            //    //program->setUniformValueArray("", transforms, 6);
-            //    //...
-            //    
-            //    // Task_2_3 - ToDo End
-            //    }
-            //case TerrainProgram:
-            //    program->setUniformValue("caustics", 2);
-            //    program->setUniformValue("ground", 1);
-            //    program->setUniformValue("height", 0);
+               /*QMatrix4x4 transforms[6] = 
+               {
+                   ...
+               };*/
+               //program->setUniformValueArray("", transforms, 6);
+               //...
+               
+               // Task_2_3 - ToDo End
+               }
 
-            //    break;
+            case WaterProgram:
+                program->setUniformValue("water",   2);
+
+            case TerrainProgram:
+                program->setUniformValue("caustics",   3);
+                program->setUniformValue("ground", 1);
+                program->setUniformValue("height", 0);
+                break;
             }
 
             program->release();
@@ -716,9 +710,9 @@ void Painter::paint_2_3(float timef)
     // .. draw scene geometry 
 
 
+    paint_2_1_envmap(EnvMapProgram, timef);
     paint_2_3_terrain(TerrainProgram, timef);
     paint_2_3_water(WaterProgram, timef);
-    paint_2_1_envmap(EnvMapProgram, timef);
 
     // Task_2_3 - ToDo End
 }
