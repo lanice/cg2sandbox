@@ -2,7 +2,7 @@
 
 uniform sampler2D ground;
 uniform sampler2D caustics;
-uniform float time;
+uniform float timef;
 
 in vec2 texCoord;
 in float color;
@@ -34,7 +34,7 @@ void main()
 
 	vec4 terrainColor = vec4((darkFactor*(1.0-ambienteDiv)+ambienteDiv)*endColor);
 	
-	float timeOffset = mod(int(time * 600), 32)/32.0;
+	float timeOffset = mod(int(timef * 600), 32)/32.0;
 	float causticsX = timeOffset + mod(texCoord.x*scaleFactorCaustics/32.0, 1.0/32.0);
 	float causticsY = mod(texCoord.y*scaleFactorCaustics,1.0);
 	vec4 causticColor = texture2D(caustics, vec2(causticsX,causticsY));

@@ -4,7 +4,7 @@
 
 uniform mat4 transform;
 uniform sampler2D height;
-uniform float time;
+uniform float timef;
 
 in vec3 a_vertex;
 
@@ -27,7 +27,7 @@ void main()
 
 	vec3 vectorX = normalize(vec3(softShadowFactor, color - texture2D(height,texCoord+vec2(softShadowFactor,0.0)).r, 0.0));
 	vec3 vectorZ = normalize(vec3(0.0, color - texture2D(height,texCoord+vec2(0.0,softShadowFactor)).r, softShadowFactor));
-	vec3 rotVec = vec3(cos(time*40),1.0,sin(time*40));
+	vec3 rotVec = vec3(cos(timef*40),1.0,sin(timef*40));
 	darkFactor = dot(cross(vectorZ,vectorX), normalize(rotVec));
 
 

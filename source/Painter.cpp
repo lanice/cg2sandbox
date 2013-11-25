@@ -24,8 +24,9 @@ namespace
     const int SphereProgram      = AbstractPainter::PaintMode9 + 4;
     const int SphereCubeProgram  = AbstractPainter::PaintMode9 + 5;
 
-    //const int TerrainProgram     = AbstractPainter::PaintMode9 + 6;
-    //const int TerrainCubeProgram = AbstractPainter::PaintMode9 + 7;
+    const int TerrainProgram     = AbstractPainter::PaintMode9 + 6;
+    const int WaterProgram     = AbstractPainter::PaintMode9 + 7;
+    //const int TerrainCubeProgram = AbstractPainter::PaintMode9 + 8;
 
     // const int OtherProgram = AbstractPainter::PaintMode9 + 2;
     // ...
@@ -77,11 +78,7 @@ bool Painter::initialize()
      m_transforms[0].scale(16.f, 2.f, 16.f);
      m_transforms[0].translate(-.5f, 0.f, -.5f);
 
-    m_terrains << new Terrain(8, *this);
-
-    // m_transforms << QMatrix4x4();
-    // m_transforms[1].scale(2.f, 0.4f, 2.f);
-    // m_transforms[1].translate(-.5f, 0.f, -.5f);
+    // m_terrains << new Terrain(8, *this);
 
     m_terrains << new Terrain(256, *this);
     m_terrains << new Terrain(2, *this); // this should give you a plane that you might use as a water plane ;)
@@ -92,25 +89,6 @@ bool Painter::initialize()
     m_ground    = FileAssociatedTexture::getOrCreate2D("data/ground.png", *this);
     m_water = FileAssociatedTexture::getOrCreate2D("data/water.png", *this);
     m_caustics  = FileAssociatedTexture::getOrCreate2D("data/caustics.png", *this);
-
-
-    // uebung 1_1
-    m_programs[PaintMode1] = createBasicShaderProgram("data/terrain_1_1.vert", "data/terrain_1_1.frag");
-
-    // uebung 1_2
-    m_programs[PaintMode2] = createBasicShaderProgram("data/terrain_1_2.vert", "data/terrain_1_2.frag");
-
-    // uebung 1_3
-    m_programs[PaintMode3] = createBasicShaderProgram("data/terrain_1_3.vert", "data/terrain_1_3.frag");
-
-    // uebung 1_4
-    m_programs[PaintMode4] = createBasicShaderProgram("data/terrain_1_4.vert", "data/terrain_1_4.frag");
-    m_programs[PaintMode4Water] = createBasicShaderProgram("data/water_1_4.vert", "data/water_1_4.frag");
-
-    //m_programs[PaintMode5] = createBasicShaderProgram("data/terrain_1_5.vert", "data/terrain_1_5.frag");
-
-    // ...
-
 
     // uebung 2_1
 
@@ -141,7 +119,8 @@ bool Painter::initialize()
 
     // uebung 2_3
 
-    //m_programs[TerrainProgram] = createBasicShaderProgram("data/terrain.vert", "data/terrain.frag");
+    m_programs[TerrainProgram] = createBasicShaderProgram("data/terrain_1_4.vert", "data/terrain_1_4.frag");
+    m_programs[WaterProgram] = createBasicShaderProgram("data/water_1_4.vert", "data/water_1_4.frag");
     
     m_waterheights = FileAssociatedTexture::getOrCreate2D("data/waterheights.png", *this);
     m_waternormals = FileAssociatedTexture::getOrCreate2D("data/waternormals.png", *this);
@@ -329,26 +308,6 @@ void Painter::update(const QList<QOpenGLShaderProgram *> & programs)
 
             switch (i)
             {
-            case PaintMode0:
-            case PaintMode9:
-            case PaintMode8:
-            case PaintMode7:
-            case PaintMode6:
-            case PaintMode5:
-            case PaintMode4Water:
-                program->setUniformValue("water",   2);
-            case PaintMode4:
-                program->setUniformValue("caustics",   3);
-            case PaintMode3:
-                program->setUniformValue("ground", 1);
-            case PaintMode2:
-                program->setUniformValue("height", 0);
-            case PaintMode1:
-                //  program->setUniformValue("offset", QVector3D(-0.5, 0.0, -0.5));
-                break;
-                //case OtherProgram: // feel free to use more than one program per mode...
-                //    break;
-
             case EnvMapCubeProgram:
                 {
                 // Task_2_3 - ToDo Begin
@@ -383,6 +342,15 @@ void Painter::update(const QList<QOpenGLShaderProgram *> & programs)
                 program->setUniformValue("envmap", 0);
                 program->setUniformValue("cubemap", 1);
 
+                break;
+
+            case WaterProgram:
+                program->setUniformValue("water",   2);
+
+            case TerrainProgram:
+                program->setUniformValue("caustics",   3);
+                program->setUniformValue("ground", 1);
+                program->setUniformValue("height", 0);
                 break;
 
             case SphereCubeProgram:
@@ -620,8 +588,8 @@ void Painter::bindEnvMaps(GLenum target)
         glActiveTexture(target + 1);
         glEnable(GL_TEXTURE_CUBE_MAP);
         glBindTexture(GL_TEXTURE_CUBE_MAP, m_envmaps[m_mapping]);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     }
 }
 
@@ -723,7 +691,7 @@ void Painter::paint_2_3(float timef)
     // ...
 
     paint_2_1_envmap(EnvMapCubeProgram, timef);
-//    paint_2_3_terrain(TerrainCubeProgram, timef);
+    //paint_2_3_terrain(TerrainCubeProgram, timef);
 
 
     // ..
@@ -748,7 +716,8 @@ void Painter::paint_2_3(float timef)
     // .. draw scene geometry 
 
 
-    //paint_2_3_terrain(TerrainProgram, timef);
+    paint_2_3_terrain(TerrainProgram, timef);
+    paint_2_3_water(WaterProgram, timef);
     //paint_2_1_envmap(EnvMapProgram, timef);
 
     // Task_2_3 - ToDo End
@@ -759,37 +728,70 @@ void Painter::paint_2_3_terrain(
     const int programIndex
 ,   float timef)
 {
-    //QOpenGLShaderProgram * program(m_programs[programIndex]);
-    //Terrain * terrain(m_terrains[0]);
+    QOpenGLShaderProgram * program(m_programs[programIndex]);
+    Terrain * terrain(m_terrains[0]);
 
-    //if (!program->isLinked())
-    //    return;
+    if (!program->isLinked())
+        return;
 
-    //glActiveTexture(GL_TEXTURE0);
-    //glEnable(GL_TEXTURE_2D);
-    //glBindTexture(GL_TEXTURE_2D, m_height);
+    glActiveTexture(GL_TEXTURE0);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, m_height);
 
-    //glActiveTexture(GL_TEXTURE1);
-    //glEnable(GL_TEXTURE_2D);
-    //glBindTexture(GL_TEXTURE_2D, m_ground);
+    glActiveTexture(GL_TEXTURE1);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, m_ground);
 
-    //glActiveTexture(GL_TEXTURE2);
-    //glEnable(GL_TEXTURE_2D);
-    //glBindTexture(GL_TEXTURE_2D, m_caustics);
+    glActiveTexture(GL_TEXTURE3);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, m_caustics);
 
-    //program->bind();
-    //program->setUniformValue("timef", timef);
-    //terrain->draw(*this);
-    //program->release();
+    program->bind();
+    program->setUniformValue("timef", timef);
+    terrain->draw(*this);
+    program->release();
 
-    //glBindTexture(GL_TEXTURE_2D, 0);
-    //glDisable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
 
-    //glActiveTexture(GL_TEXTURE1);
-    //glBindTexture(GL_TEXTURE_2D, 0);
-    //glDisable(GL_TEXTURE_2D);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
 
-    //glActiveTexture(GL_TEXTURE0);
-    //glBindTexture(GL_TEXTURE_2D, 0);
-    //glDisable(GL_TEXTURE_2D);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
+}
+
+void Painter::paint_2_3_water(
+    const int programIndex
+,   float timef)
+{
+    QOpenGLShaderProgram * program(m_programs[programIndex]);
+    Terrain * terrain(m_terrains[1]);
+
+    if (!program->isLinked())
+        return;
+
+    glActiveTexture(GL_TEXTURE0);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, m_height);
+
+    glActiveTexture(GL_TEXTURE2);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBindTexture(GL_TEXTURE_2D, m_water);
+
+    program->bind();
+    terrain->draw(*this);
+    program->release();
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
 }
