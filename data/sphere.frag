@@ -68,10 +68,10 @@ void main()
 	
 	float frsl = smoothstep(0.5,1.5,length(e+r));
 
-	vec4 refr = env(r);
-	vec4 refl = env(q);
+	vec4 refl = env(r);
+	vec4 refr = env(q);
 	
-	fragColor = mix(refr,refl,frsl);
+	fragColor = mix(refl,refr,frsl);
 	//fragColor = vec4(vec3(length(e+r)/2),1.0);
 }
 
