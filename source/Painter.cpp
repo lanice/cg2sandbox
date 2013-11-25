@@ -718,7 +718,7 @@ void Painter::paint_2_3(float timef)
 
     paint_2_3_terrain(TerrainProgram, timef);
     paint_2_3_water(WaterProgram, timef);
-    //paint_2_1_envmap(EnvMapProgram, timef);
+    paint_2_1_envmap(EnvMapProgram, timef);
 
     // Task_2_3 - ToDo End
 }
