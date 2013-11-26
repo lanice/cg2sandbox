@@ -92,6 +92,20 @@ protected:
 
     QMap<int, QOpenGLShaderProgram *> m_programs;
     QList<QOpenGLShader *> m_shaders;
+	
+    QVector<byte> m_cubeMapColorData0;
+    QVector<byte> m_cubeMapColorData1;
+    QVector<byte> m_cubeMapColorData2;
+    QVector<byte> m_cubeMapColorData3;
+    QVector<byte> m_cubeMapColorData4;
+    QVector<byte> m_cubeMapColorData5;
+
+    QVector<byte> m_cubeMapDepthData0;
+    QVector<byte> m_cubeMapDepthData1;
+    QVector<byte> m_cubeMapDepthData2;
+    QVector<byte> m_cubeMapDepthData3;
+    QVector<byte> m_cubeMapDepthData4;
+    QVector<byte> m_cubeMapDepthData5;
 
     GLuint m_height;
     GLuint m_ground;

@@ -26,7 +26,7 @@ namespace
 
     const int TerrainProgram     = AbstractPainter::PaintMode9 + 6;
     const int WaterProgram     = AbstractPainter::PaintMode9 + 7;
-    //const int TerrainCubeProgram = AbstractPainter::PaintMode9 + 8;
+    const int TerrainCubeProgram = AbstractPainter::PaintMode9 + 8;
 
     // const int OtherProgram = AbstractPainter::PaintMode9 + 2;
     // ...
@@ -132,7 +132,7 @@ bool Painter::initialize()
 
     // Feel free to add shaders for your arbitrary geometry (e.g., terrain from the first assignment)
 
-    //m_programs[TerrainCubeProgram] = createBasicShaderProgram("data/terrain_cube.vert", "data/terrain_cube.geom", "data/terrain_cube.frag");
+    m_programs[TerrainCubeProgram] = createBasicShaderProgram("data/terrain_cube.vert", "data/terrain_cube.geom", "data/terrain_cube.frag");
 
     // Task_2_3 - ToDo End
 
@@ -141,28 +141,58 @@ bool Painter::initialize()
 
     // ToDo: Add missing information for fbo initialization.
     // 
+	
+    m_cubeMapColorData0.reserve(CubeMapSize*CubeMapSize*4*6);
+    m_cubeMapColorData1.reserve(CubeMapSize*CubeMapSize*4*6);
+    m_cubeMapColorData2.reserve(CubeMapSize*CubeMapSize*4*6);
+    m_cubeMapColorData3.reserve(CubeMapSize*CubeMapSize*4*6);
+    m_cubeMapColorData4.reserve(CubeMapSize*CubeMapSize*4*6);
+    m_cubeMapColorData5.reserve(CubeMapSize*CubeMapSize*4*6);
+
+    m_cubeMapDepthData0.reserve(CubeMapSize*CubeMapSize*4*6);
+    m_cubeMapDepthData1.reserve(CubeMapSize*CubeMapSize*4*6);
+    m_cubeMapDepthData2.reserve(CubeMapSize*CubeMapSize*4*6);
+    m_cubeMapDepthData3.reserve(CubeMapSize*CubeMapSize*4*6);
+    m_cubeMapDepthData4.reserve(CubeMapSize*CubeMapSize*4*6);
+    m_cubeMapDepthData5.reserve(CubeMapSize*CubeMapSize*4*6);
 
     glGenTextures(1, &m_cubeTex);
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubeTex);
-    //glTexParameteri(..., ..., GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0); 
+        // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, 0); 
     //...
-    //glTexParameteri(..., GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    //...
 
-    // glTexImage2D(...) // for each face ;)
-
-    // same procedure again...
-
-    glGenRenderbuffers(1, &m_cubeDepthRB);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA, CubeMapSize, CubeMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_cubeMapColorData0.data());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, CubeMapSize, CubeMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_cubeMapColorData1.data());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, CubeMapSize, CubeMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_cubeMapColorData2.data());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA, CubeMapSize, CubeMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_cubeMapColorData3.data());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA, CubeMapSize, CubeMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_cubeMapColorData4.data());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA, CubeMapSize, CubeMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_cubeMapColorData5.data());
+																															  
+    // same procedure again...																								  
+																															  
+    glGenTextures(1, &m_cubeDepthRB);
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubeDepthRB);
-    //glTexParameteri(..., ..., GL_NEAREST);
-    //...
-    //glTexParameteri(..., GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
     //...
 
     // Note: Be aware of multiple available DepthBufferComponent formats...
 
-    // glTexImage2D(...) // for each face ;)
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_DEPTH_COMPONENT, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_INT, m_cubeMapDepthData0.data());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_DEPTH_COMPONENT, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_INT, m_cubeMapDepthData1.data());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_DEPTH_COMPONENT, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_INT, m_cubeMapDepthData2.data());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_DEPTH_COMPONENT, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_INT, m_cubeMapDepthData3.data());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_DEPTH_COMPONENT, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_INT, m_cubeMapDepthData4.data());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_DEPTH_COMPONENT, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_INT, m_cubeMapDepthData5.data());
 
 
     // Task_2_3 - ToDo End
