@@ -18,7 +18,7 @@ void main()
 	vec3 eye = normalize(g_eye);
 	//vec4 color = env(eye);
 	
-	//fragColor = color;
+	fragColor = vec4(1.0,0.0,0.0,1.0);// color;
 }
 
 // Task_2_3 - ToDo End

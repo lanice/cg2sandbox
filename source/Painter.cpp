@@ -373,11 +373,17 @@ void Painter::update(const QList<QOpenGLShaderProgram *> & programs)
                 // Note: This is basically the same as for task 2_1, but instead
                 // of using the main camera, use 6 cameras with fixed fov, viewport, etc.
 
-                /*QMatrix4x4 transforms[6] = 
+                QMatrix4x4 transforms[6] = 
                 {
-                    ...
-                };*/
-                //program->setUniformValueArray("", transforms, 6);
+                    camera()->view(),
+                    camera()->view(),
+                    camera()->view(),
+                    camera()->view(),
+                    camera()->view(),
+                    camera()->view()
+                };
+                program->setUniformValueArray("transforms", transforms, 6);
+                program->setUniformValue("viewProjectionInverted", camera()->viewProjectionInverted());
                 //...
                 
                 // Task_2_3 - ToDo End

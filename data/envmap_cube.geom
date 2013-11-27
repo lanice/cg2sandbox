@@ -2,7 +2,8 @@
 
 // Task_2_3 - ToDo Begin
 
-//uniform mat4 ...[6];
+uniform mat4 transforms[6];
+in vec3 v_eye[3];
 //...
 
 layout (triangles) in;
@@ -12,6 +13,15 @@ out vec3 g_eye;
 
 void main()
 {
+	for (int layer = 0; layer < 6; layer++) {
+        gl_Layer = layer;
+        for (int i = 0; i < 3; i++) {
+            gl_Position = transforms[layer]*gl_PositionIn[i];
+            g_eye = v_eye[i];
+            EmitVertex();
+        }
+        EndPrimitive();
+    }
 	// ToDo: for each cubemap face
 
 	// use the gl_Layer to set the current cube map face to render to
