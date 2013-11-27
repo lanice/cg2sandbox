@@ -62,6 +62,18 @@ Painter::~Painter()
 
     delete m_quad;
     delete m_icosa;
+    delete m_cubeMapColorData0;
+    delete m_cubeMapColorData1;
+    delete m_cubeMapColorData2;
+    delete m_cubeMapColorData3;
+    delete m_cubeMapColorData4;
+    delete m_cubeMapColorData5;
+    delete m_cubeMapDepthData0;
+    delete m_cubeMapDepthData1;
+    delete m_cubeMapDepthData2;
+    delete m_cubeMapDepthData3;
+    delete m_cubeMapDepthData4;
+    delete m_cubeMapDepthData5;
 }
 
 bool Painter::initialize()
@@ -142,19 +154,34 @@ bool Painter::initialize()
     // ToDo: Add missing information for fbo initialization.
     // 
 	
-    m_cubeMapColorData0.reserve(CubeMapSize*CubeMapSize*4*6);
-    m_cubeMapColorData1.reserve(CubeMapSize*CubeMapSize*4*6);
-    m_cubeMapColorData2.reserve(CubeMapSize*CubeMapSize*4*6);
-    m_cubeMapColorData3.reserve(CubeMapSize*CubeMapSize*4*6);
-    m_cubeMapColorData4.reserve(CubeMapSize*CubeMapSize*4*6);
-    m_cubeMapColorData5.reserve(CubeMapSize*CubeMapSize*4*6);
+    m_cubeMapColorData0 = new QVector<byte>(CubeMapSize*CubeMapSize*4);
+    m_cubeMapColorData1 = new QVector<byte>(CubeMapSize*CubeMapSize*4);
+    m_cubeMapColorData2 = new QVector<byte>(CubeMapSize*CubeMapSize*4);
+    m_cubeMapColorData3 = new QVector<byte>(CubeMapSize*CubeMapSize*4);
+    m_cubeMapColorData4 = new QVector<byte>(CubeMapSize*CubeMapSize*4);
+    m_cubeMapColorData5 = new QVector<byte>(CubeMapSize*CubeMapSize*4);
 
-    m_cubeMapDepthData0.reserve(CubeMapSize*CubeMapSize*4*6);
-    m_cubeMapDepthData1.reserve(CubeMapSize*CubeMapSize*4*6);
-    m_cubeMapDepthData2.reserve(CubeMapSize*CubeMapSize*4*6);
-    m_cubeMapDepthData3.reserve(CubeMapSize*CubeMapSize*4*6);
-    m_cubeMapDepthData4.reserve(CubeMapSize*CubeMapSize*4*6);
-    m_cubeMapDepthData5.reserve(CubeMapSize*CubeMapSize*4*6);
+    m_cubeMapDepthData0 = new QVector<byte>(CubeMapSize*CubeMapSize);
+    m_cubeMapDepthData1 = new QVector<byte>(CubeMapSize*CubeMapSize);
+    m_cubeMapDepthData2 = new QVector<byte>(CubeMapSize*CubeMapSize);
+    m_cubeMapDepthData3 = new QVector<byte>(CubeMapSize*CubeMapSize);
+    m_cubeMapDepthData4 = new QVector<byte>(CubeMapSize*CubeMapSize);
+    m_cubeMapDepthData5 = new QVector<byte>(CubeMapSize*CubeMapSize);
+
+
+    m_cubeMapColorData0->reserve(CubeMapSize*CubeMapSize*4);
+    m_cubeMapColorData1->reserve(CubeMapSize*CubeMapSize*4);
+    m_cubeMapColorData2->reserve(CubeMapSize*CubeMapSize*4);
+    m_cubeMapColorData3->reserve(CubeMapSize*CubeMapSize*4);
+    m_cubeMapColorData4->reserve(CubeMapSize*CubeMapSize*4);
+    m_cubeMapColorData5->reserve(CubeMapSize*CubeMapSize*4);
+
+    m_cubeMapDepthData0->reserve(CubeMapSize*CubeMapSize*4);
+    m_cubeMapDepthData1->reserve(CubeMapSize*CubeMapSize*4);
+    m_cubeMapDepthData2->reserve(CubeMapSize*CubeMapSize*4);
+    m_cubeMapDepthData3->reserve(CubeMapSize*CubeMapSize*4);
+    m_cubeMapDepthData4->reserve(CubeMapSize*CubeMapSize*4);
+    m_cubeMapDepthData5->reserve(CubeMapSize*CubeMapSize*4);
 
     glGenTextures(1, &m_cubeTex);
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubeTex);
@@ -167,12 +194,12 @@ bool Painter::initialize()
         // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, 0); 
     //...
 
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA, CubeMapSize, CubeMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_cubeMapColorData0.data());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, CubeMapSize, CubeMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_cubeMapColorData1.data());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, CubeMapSize, CubeMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_cubeMapColorData2.data());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA, CubeMapSize, CubeMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_cubeMapColorData3.data());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA, CubeMapSize, CubeMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_cubeMapColorData4.data());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA, CubeMapSize, CubeMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_cubeMapColorData5.data());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA, CubeMapSize, CubeMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_cubeMapColorData0->data());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, CubeMapSize, CubeMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_cubeMapColorData1->data());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, CubeMapSize, CubeMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_cubeMapColorData2->data());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA, CubeMapSize, CubeMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_cubeMapColorData3->data());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA, CubeMapSize, CubeMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_cubeMapColorData4->data());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA, CubeMapSize, CubeMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_cubeMapColorData5->data());
 																															  
     // same procedure again...																								  
 																															  
@@ -187,12 +214,12 @@ bool Painter::initialize()
 
     // Note: Be aware of multiple available DepthBufferComponent formats...
 
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_DEPTH_COMPONENT, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_INT, m_cubeMapDepthData0.data());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_DEPTH_COMPONENT, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_INT, m_cubeMapDepthData1.data());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_DEPTH_COMPONENT, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_INT, m_cubeMapDepthData2.data());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_DEPTH_COMPONENT, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_INT, m_cubeMapDepthData3.data());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_DEPTH_COMPONENT, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_INT, m_cubeMapDepthData4.data());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_DEPTH_COMPONENT, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_INT, m_cubeMapDepthData5.data());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_DEPTH_COMPONENT, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, m_cubeMapDepthData0->data());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_DEPTH_COMPONENT, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, m_cubeMapDepthData1->data());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_DEPTH_COMPONENT, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, m_cubeMapDepthData2->data());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_DEPTH_COMPONENT, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, m_cubeMapDepthData3->data());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_DEPTH_COMPONENT, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, m_cubeMapDepthData4->data());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_DEPTH_COMPONENT, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, m_cubeMapDepthData5->data());
 
 
     // Task_2_3 - ToDo End
