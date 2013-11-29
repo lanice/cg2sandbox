@@ -16,7 +16,7 @@
 
 namespace
 {
-    const int CubeMapSize        = 256;
+    const int CubeMapSize        = 128;
 
     const int EnvMapProgram      = AbstractPainter::PaintMode9 + 2;
     const int EnvMapCubeProgram  = AbstractPainter::PaintMode9 + 3;
@@ -62,18 +62,6 @@ Painter::~Painter()
 
     delete m_quad;
     delete m_icosa;
-    delete m_cubeMapColorData0;
-    delete m_cubeMapColorData1;
-    delete m_cubeMapColorData2;
-    delete m_cubeMapColorData3;
-    delete m_cubeMapColorData4;
-    delete m_cubeMapColorData5;
-    delete m_cubeMapDepthData0;
-    delete m_cubeMapDepthData1;
-    delete m_cubeMapDepthData2;
-    delete m_cubeMapDepthData3;
-    delete m_cubeMapDepthData4;
-    delete m_cubeMapDepthData5;
 }
 
 bool Painter::initialize()
@@ -101,6 +89,7 @@ bool Painter::initialize()
     m_ground    = FileAssociatedTexture::getOrCreate2D("data/ground.png", *this);
     m_water = FileAssociatedTexture::getOrCreate2D("data/water.png", *this);
     m_caustics  = FileAssociatedTexture::getOrCreate2D("data/caustics.png", *this);
+
 
     // uebung 2_1
 
@@ -153,35 +142,6 @@ bool Painter::initialize()
 
     // ToDo: Add missing information for fbo initialization.
     // 
-	
-    m_cubeMapColorData0 = new QVector<byte>(CubeMapSize*CubeMapSize*4);
-    m_cubeMapColorData1 = new QVector<byte>(CubeMapSize*CubeMapSize*4);
-    m_cubeMapColorData2 = new QVector<byte>(CubeMapSize*CubeMapSize*4);
-    m_cubeMapColorData3 = new QVector<byte>(CubeMapSize*CubeMapSize*4);
-    m_cubeMapColorData4 = new QVector<byte>(CubeMapSize*CubeMapSize*4);
-    m_cubeMapColorData5 = new QVector<byte>(CubeMapSize*CubeMapSize*4);
-
-    m_cubeMapDepthData0 = new QVector<byte>(CubeMapSize*CubeMapSize);
-    m_cubeMapDepthData1 = new QVector<byte>(CubeMapSize*CubeMapSize);
-    m_cubeMapDepthData2 = new QVector<byte>(CubeMapSize*CubeMapSize);
-    m_cubeMapDepthData3 = new QVector<byte>(CubeMapSize*CubeMapSize);
-    m_cubeMapDepthData4 = new QVector<byte>(CubeMapSize*CubeMapSize);
-    m_cubeMapDepthData5 = new QVector<byte>(CubeMapSize*CubeMapSize);
-
-
-    m_cubeMapColorData0->reserve(CubeMapSize*CubeMapSize*4);
-    m_cubeMapColorData1->reserve(CubeMapSize*CubeMapSize*4);
-    m_cubeMapColorData2->reserve(CubeMapSize*CubeMapSize*4);
-    m_cubeMapColorData3->reserve(CubeMapSize*CubeMapSize*4);
-    m_cubeMapColorData4->reserve(CubeMapSize*CubeMapSize*4);
-    m_cubeMapColorData5->reserve(CubeMapSize*CubeMapSize*4);
-
-    m_cubeMapDepthData0->reserve(CubeMapSize*CubeMapSize*4);
-    m_cubeMapDepthData1->reserve(CubeMapSize*CubeMapSize*4);
-    m_cubeMapDepthData2->reserve(CubeMapSize*CubeMapSize*4);
-    m_cubeMapDepthData3->reserve(CubeMapSize*CubeMapSize*4);
-    m_cubeMapDepthData4->reserve(CubeMapSize*CubeMapSize*4);
-    m_cubeMapDepthData5->reserve(CubeMapSize*CubeMapSize*4);
 
     glGenTextures(1, &m_cubeTex);
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubeTex);
@@ -190,16 +150,11 @@ bool Painter::initialize()
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-        // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0); 
-        // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, 0); 
     //...
-
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA, CubeMapSize, CubeMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_cubeMapColorData0->data());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, CubeMapSize, CubeMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_cubeMapColorData1->data());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, CubeMapSize, CubeMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_cubeMapColorData2->data());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA, CubeMapSize, CubeMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_cubeMapColorData3->data());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA, CubeMapSize, CubeMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_cubeMapColorData4->data());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA, CubeMapSize, CubeMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_cubeMapColorData5->data());
+		
+	for (int i=0;i<6;++i){
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB8, CubeMapSize, CubeMapSize, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	}
 																															  
     // same procedure again...																								  
 																															  
@@ -214,12 +169,9 @@ bool Painter::initialize()
 
     // Note: Be aware of multiple available DepthBufferComponent formats...
 
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_DEPTH_COMPONENT, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, m_cubeMapDepthData0->data());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_DEPTH_COMPONENT, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, m_cubeMapDepthData1->data());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_DEPTH_COMPONENT, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, m_cubeMapDepthData2->data());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_DEPTH_COMPONENT, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, m_cubeMapDepthData3->data());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_DEPTH_COMPONENT, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, m_cubeMapDepthData4->data());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_DEPTH_COMPONENT, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, m_cubeMapDepthData5->data());
+	for (int i=0;i<6;++i){
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT24, CubeMapSize, CubeMapSize, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	}
 
 
     // Task_2_3 - ToDo End
@@ -373,18 +325,35 @@ void Painter::update(const QList<QOpenGLShaderProgram *> & programs)
                 // Note: This is basically the same as for task 2_1, but instead
                 // of using the main camera, use 6 cameras with fixed fov, viewport, etc.
 
-                QMatrix4x4 transforms[6] = 
-                {
-                    camera()->view(),
-                    camera()->view(),
-                    camera()->view(),
-                    camera()->view(),
-                    camera()->view(),
-                    camera()->view()
-                };
+                QMatrix4x4 transforms[6];
+                transforms[5].setToIdentity();
+                transforms[5].perspective(90.0f, 1.0f, 0.1f, 128.0f);
+                transforms[5].rotate(180.0f, QVector3D(0.0f, 0.0f, 1.0f));
+                
+                transforms[0].setToIdentity();
+                transforms[0].perspective(90.0f, 1.0f, 0.1f, 128.0f);
+                transforms[0].rotate(90.0f, QVector3D(0.0f, 1.0f, 0.0f));
+                transforms[0].rotate(180.0f, QVector3D(1.0f, 0.0f, 0.0f));
+                
+                transforms[4].setToIdentity();
+                transforms[4].perspective(90.0f, 1.0f, 0.1f, 128.0f);
+                transforms[4].rotate(180.0f, QVector3D(0.0f, 1.0f, 0.0f));
+                transforms[4].rotate(180.0f, QVector3D(0.0f, 0.0f, 1.0f));
+                
+                transforms[1].setToIdentity();
+                transforms[1].perspective(90.0f, 1.0f, 0.1f, 128.0f);
+                transforms[1].rotate(270.0f, QVector3D(0.0f, 1.0f, 0.0f));
+                transforms[1].rotate(180.0f, QVector3D(1.0f, 0.0f, 0.0f));
+                
+                transforms[2].setToIdentity();
+                transforms[2].perspective(90.0f, 1.0f, 0.1f, 128.0f);
+                transforms[2].rotate(-90.0f, QVector3D(1.0f, 0.0f, 0.0f));
+                
+                transforms[3].setToIdentity();
+                transforms[3].perspective(90.0f, 1.0f, 0.1f, 128.0f);
+                transforms[3].rotate(90.0f, QVector3D(1.0f, 0.0f, 0.0f));
+
                 program->setUniformValueArray("transforms", transforms, 6);
-                program->setUniformValue("viewProjectionInverted", camera()->viewProjectionInverted());
-                //...
                 
                 // Task_2_3 - ToDo End
                 }
@@ -433,14 +402,46 @@ void Painter::update(const QList<QOpenGLShaderProgram *> & programs)
                {
                // Task_2_3 - ToDo Begin
 
-               // Provide the appropriate matrices to the geometry shader.
-
-               /*QMatrix4x4 transforms[6] = 
-               {
-                   ...
-               };*/
-               //program->setUniformValueArray("", transforms, 6);
-               //...
+                QMatrix4x4 transforms[6];
+                transforms[5].setToIdentity();
+                transforms[5].perspective(90.0f, 1.0f, 0.1f, 128.0f);
+                transforms[5].rotate(180.0f, QVector3D(0.0f, 0.0f, 1.0f));
+                transforms[5].translate(-m_icosa_center);
+                transforms[5] = transforms[5]*m_transforms[0];
+                
+                transforms[0].setToIdentity();
+                transforms[0].perspective(90.0f, 1.0f, 0.1f, 128.0f);
+                transforms[0].rotate(90.0f, QVector3D(0.0f, 1.0f, 0.0f));
+                transforms[0].rotate(180.0f, QVector3D(1.0f, 0.0f, 0.0f));
+                transforms[0].translate(-m_icosa_center);
+                transforms[0] = transforms[0]*m_transforms[0];
+                
+                transforms[4].setToIdentity();
+                transforms[4].perspective(90.0f, 1.0f, 0.1f, 128.0f);
+                transforms[4].rotate(180.0f, QVector3D(0.0f, 1.0f, 0.0f));
+                transforms[4].rotate(180.0f, QVector3D(0.0f, 0.0f, 1.0f));
+                transforms[4].translate(-m_icosa_center);
+                transforms[4] = transforms[4]*m_transforms[0];
+                
+                transforms[1].setToIdentity();
+                transforms[1].perspective(90.0f, 1.0f, 0.1f, 128.0f);
+                transforms[1].rotate(270.0f, QVector3D(0.0f, 1.0f, 0.0f));
+                transforms[1].rotate(180.0f, QVector3D(1.0f, 0.0f, 0.0f));
+                transforms[1].translate(-m_icosa_center);
+                transforms[1] = transforms[1]*m_transforms[0];
+                
+                transforms[2].setToIdentity();
+                transforms[2].perspective(90.0f, 1.0f, 0.1f, 128.0f);
+                transforms[2].rotate(-90.0f, QVector3D(1.0f, 0.0f, 0.0f));
+                transforms[2].translate(-m_icosa_center);
+                transforms[2] = transforms[2]*m_transforms[0];
+                
+                transforms[3].setToIdentity();
+                transforms[3].perspective(90.0f, 1.0f, 0.1f, 128.0f);
+                transforms[3].rotate(90.0f, QVector3D(1.0f, 0.0f, 0.0f));
+                transforms[3].translate(-m_icosa_center);
+                transforms[3] = transforms[3]*m_transforms[0];
+                program->setUniformValueArray("transforms", transforms, 6);
                
                // Task_2_3 - ToDo End
                }
@@ -719,14 +720,13 @@ void Painter::paint_2_2_sphere(
 
     if (!program->isLinked())
         return;
-    
-    bindEnvMaps(GL_TEXTURE0);
+
+	bindEnvMaps(GL_TEXTURE0);
 
     program->bind();
     program->setUniformValue("timef", timef);
     m_icosa->draw(*this);
     program->release();
-
     unbindEnvMaps(GL_TEXTURE0);
 }
 
@@ -744,18 +744,23 @@ void Painter::paint_2_3(float timef)
     glBindFramebuffer(GL_FRAMEBUFFER, m_cubeFBO);
     
     // ToDO: set viewport, clear buffer
+	QVector<int> vecOfViewport(4);
+	glGetIntegerv(GL_VIEWPORT, vecOfViewport.data());
+	glViewport(0,0,CubeMapSize, CubeMapSize);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     // ...
 
     paint_2_1_envmap(EnvMapCubeProgram, timef);
-    //paint_2_3_terrain(TerrainCubeProgram, timef);
+    paint_2_3_terrain(TerrainCubeProgram, timef);
 
 
     // ..
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    // ... set viewport, setup depth test, 
+    // ... set viewport, setup depth test,
+	glViewport(vecOfViewport[0], vecOfViewport[1], vecOfViewport[2], vecOfViewport[3]);
 
     // ...
 
@@ -776,7 +781,6 @@ void Painter::paint_2_3(float timef)
     paint_2_1_envmap(EnvMapProgram, timef);
     paint_2_3_terrain(TerrainProgram, timef);
     paint_2_3_water(WaterProgram, timef);
-
     // Task_2_3 - ToDo End
 }
 
