@@ -71,6 +71,11 @@ void DistanceTransform::sedt(const unsigned char threshold)
     const int offset = 0;
     const int step = m_source.bytesPerLine() / m_source.width();
 
+    for(int iy=0;iy<h;iy++)
+        for(int ix=0;ix<w;ix++)
+            m_sedt[iy*w+ix] = *(source+step*(iy*w+ix))/255.f;
+
+
     // Task_3_2 - ToDo Begin
 
     // ...
