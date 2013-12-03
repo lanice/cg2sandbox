@@ -138,7 +138,7 @@ bool Painter::initialize()
     // ToDo: use T.translate/scale/rotate ...
 
     T.scale(4.0,1.0,1.0);
-    T.scale(0.15,0.15,0.15);
+    T.scale(0.15);
 
     T.translate(0.1,2.5,0.0);
 
