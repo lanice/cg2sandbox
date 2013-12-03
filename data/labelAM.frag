@@ -17,7 +17,10 @@ void main()
 	// visible at all.
 
 	float a = texture(label, v_uv).x;
-	fragColor = vec4(vec3(a), 1.0);
+
+	if(a == 0.0) discard;
+
+	fragColor = vec4(vec3(0.0), a);
 	
 	// Task_3_1 - ToDo End
 }
