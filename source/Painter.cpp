@@ -137,11 +137,25 @@ bool Painter::initialize()
 
     // ToDo: use T.translate/scale/rotate ...
 
+    T.scale(4.0,1.0,1.0);
+    T.scale(0.15,0.15,0.15);
+
+    T.translate(0.1,2.5,0.0);
+
+    T.rotate(-20.0,1.0,0.0,0.0);
+
     m_transforms << T;
+
+    // rotate back to don't mess up translation vector :)
+    T.rotate(20.0,1.0,0.0,0.0);
 
     m_portccLabel = new ScreenAlignedQuad(*this, 0);
 
     // ToDo: use T.translate/scale/rotate ...
+
+    T.translate(-0.7,-2.0,5.0);
+
+    T.rotate(-20.0,1.0,0.0,0.0);
 
     m_transforms << T;
 
