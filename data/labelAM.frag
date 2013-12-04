@@ -18,7 +18,7 @@ void main()
 
 	float a = texture(label, v_uv).x;
 
-	if(a == 0.0) discard;
+	if(a < 0.2) discard;
 
 	fragColor = vec4(vec3(0.0), a);
 	

@@ -17,7 +17,9 @@ float aastep(float threshold, float value)
 	// smoothing, that is independend of the actual viewports
 	// dimensions...
 
-	return 0.0;
+	if(value < threshold) discard;
+
+	return value+(dFdx(value)+dFdy(value))*5;
 	
 	// Task_3_2 - ToDo End
 }
@@ -27,7 +29,8 @@ void main()
 	// Task_3_2 - ToDo Begin
 
 	float a = texture(label, v_uv).r;
-	fragColor = vec4(vec3(a), 1.0);
+
+	fragColor = vec4(vec3(aastep(0.4, a)), 1.0);
 	
 	// Task_3_2 - ToDo End
 }
