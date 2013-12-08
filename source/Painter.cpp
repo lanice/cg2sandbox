@@ -137,25 +137,25 @@ bool Painter::initialize()
 
     // ToDo: use T.translate/scale/rotate ...
 
-    T.scale(4.0,1.0,1.0);
-    T.scale(0.15);
+    T.scale(4.f,1.f,1.f);
+    T.scale(0.15f);
 
-    T.translate(0.1,2.5,0.0);
+    T.translate(0.1f,2.5f,0.f);
 
-    T.rotate(-20.0,1.0,0.0,0.0);
+    T.rotate(-20.f,1.f,0.f,0.f);
 
     m_transforms << T;
 
     // rotate back to don't mess up translation vector :)
-    T.rotate(20.0,1.0,0.0,0.0);
+    T.rotate(20.f,1.f,0.f,0.f);
 
     m_portccLabel = new ScreenAlignedQuad(*this, 0);
 
     // ToDo: use T.translate/scale/rotate ...
 
-    T.translate(-0.7,-2.0,5.0);
+    T.translate(-0.7f, -2.f, 5.f);
 
-    T.rotate(-20.0,1.0,0.0,0.0);
+    T.rotate(-20.f,1.f,0.f,0.f);
 
     m_transforms << T;
 
@@ -476,13 +476,18 @@ void Painter::paint_3_3_shadowmap(float timef)
     glClear(GL_DEPTH_BUFFER_BIT);
 
     QOpenGLShaderProgram * program(m_programs[ShadowMapProgram]);
-
-
+	
+	QVector3D light = m_light.normalized();
+	QVector3D right = QVector3D::crossProduct(QVector3D(0.f,1.f,0.f),light);
+	QVector3D up = QVector3D::crossProduct(light,right);
     // Task_3_3 - ToDo Begin
 
-    QMatrix4x4 L;
+	QMatrix4x4 L(
+		right.x(), right.y(), right.z(), 0.f,
+		up.x(), up.y(), up.z(), 0.f,
+		light.x(), light.y(), light.z(), 0.f,
+		0.f, 0.f, 0.f, 1.f);
 
-    // L ...
 
     // Task_3_3 - ToDo End
 

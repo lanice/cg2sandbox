@@ -73,7 +73,7 @@ void DistanceTransform::sedt(const unsigned char threshold)
 
     // Task_3_2 - ToDo Begin
 
-    QVector<QPoint> p(w*h,QPoint(-1,-1));
+    /*QVector<QPoint> p(w*h,QPoint(-1,-1));
     QVector<float> d(w*h,w+h);
     float d1 = 0.f;
     float d2 = 0.f;
@@ -143,7 +143,7 @@ void DistanceTransform::sedt(const unsigned char threshold)
 
     for(int y=0; y<h; ++y)
         for(int x=0; x<w; ++x)
-            m_sedt[y*w+x] = 0.5f * (d[y*w+x]/float(threshold)) + 0.5f;
+            m_sedt[y*w+x] = 0.5f * (d[y*w+x]/float(threshold)) + 0.5f;*/
 
 /*    float newDist = 0.0;
     float actDist = 0.0;
