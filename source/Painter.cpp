@@ -187,7 +187,7 @@ bool Painter::initialize()
         QImage image("data/hpicgs_label_bitmask.png");
 
         // ToDo: pre resize?
-        // image = image.scaled(800, 200);
+        image = image.scaled(800, 200);
 
         DistanceTransform DT(image, 512, 128, 0.0625f);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 512, 128, 0, GL_RED, GL_FLOAT, DT.data());
@@ -206,7 +206,7 @@ bool Painter::initialize()
         QImage image("data/companion_cube_label_bitmask.png");
 
         // ToDo: pre resize?
-        // image = image.scaled(800, 200);
+        image = image.scaled(1000, 250);
 
         DistanceTransform DT(image, 512, 128, 0.0625f);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 512, 128, 0, GL_RED, GL_FLOAT, DT.data());
@@ -476,11 +476,11 @@ void Painter::paint_3_3_shadowmap(float timef)
     glClear(GL_DEPTH_BUFFER_BIT);
 
     QOpenGLShaderProgram * program(m_programs[ShadowMapProgram]);
+    // Task_3_3 - ToDo Begin
 	
 	QVector3D light = m_light.normalized();
 	QVector3D right = QVector3D::crossProduct(QVector3D(0.f,1.f,0.f),light);
 	QVector3D up = QVector3D::crossProduct(light,right);
-    // Task_3_3 - ToDo Begin
 
 	QMatrix4x4 L(
 		right.x(), right.y(), right.z(), 0.f,
@@ -534,12 +534,20 @@ void Painter::paint_3_4(float timef)
 
 
     // Task_3_3 - ToDo Begin
+	
+	QVector3D light = m_light.normalized();
+	QVector3D right = QVector3D::crossProduct(QVector3D(0.f,1.f,0.f),light);
+	QVector3D up = QVector3D::crossProduct(light,right);
 
-    // QMatrix4x4 ...
+    QMatrix4x4 L(
+		right.x(), right.y(), right.z(), 0.f,
+		up.x(), up.y(), up.z(), 0.f,
+		light.x(), light.y(), light.z(), 0.f,
+		0.f, 0.f, 0.f, 1.f);
     
     program->bind();
     program->setUniformValue("light", m_light);
-    // program->setUniformValue("todo", ?);
+    program->setUniformValue("matrix", L);
     program->release();
 
     // Task_3_3 - ToDo End

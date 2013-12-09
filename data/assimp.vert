@@ -3,7 +3,8 @@
 uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
-// uniform mat4 ... ?
+uniform mat4 viewProjection;
+uniform mat4 matrix;
 
 uniform vec3 light;
 

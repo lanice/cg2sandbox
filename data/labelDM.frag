@@ -19,7 +19,8 @@ float aastep(float threshold, float value)
 
 	if(value < threshold) discard;
 
-	return value+(dFdx(value)+dFdy(value))*5;
+	// return step(0.5,value);
+	return dFdx(value)*150+0.5;
 	
 	// Task_3_2 - ToDo End
 }
@@ -30,7 +31,8 @@ void main()
 
 	float a = texture(label, v_uv).r;
 
-	fragColor = vec4(vec3(aastep(0.4, a)), 1.0);
+	//fragColor = vec4(vec3(0.0), aastep(0.45, a));
+	fragColor = vec4(vec3(aastep(0.4,a)), 1.0);
 	
 	// Task_3_2 - ToDo End
 }

@@ -60,6 +60,7 @@ float * DistanceTransform::data()
     return m_sedt;
 }
 
+#include <iostream>
 void DistanceTransform::sedt(const unsigned char threshold)
 {
     const unsigned char * source = m_source.constBits();
@@ -145,16 +146,18 @@ void DistanceTransform::sedt(const unsigned char threshold)
         for(int x=0; x<w; ++x)
             m_sedt[y*w+x] = 0.5f * (d[y*w+x]/float(threshold)) + 0.5f;*/
 
-/*    float newDist = 0.0;
+    float newDist = 0.0;
     float actDist = 0.0;
-    char actColor = 0;
+    uchar actColor = 0;
+    int window = 30;
+    float maxDistance = sqrt(float(pow(window,2)+pow(window,2))) + 1.f;
 
-    for(int iy=0;iy<h;iy++)
-        for(int ix=0;ix<w;ix++){
-            actColor = *(source+step*(iy*w+ix));
-            actDist = sqrt(float(pow(threshold/2,2)+pow(threshold/2,2)));
-            for(int jy=std::max(0,iy-threshold/2); jy<=std::min(h-1,iy+threshold/2); jy++)
-                for(int jx=std::max(0,ix-threshold/2); jx<=std::min(w-1,ix+threshold/2); jx++)
+    for(int iy=0;iy<h;++iy)
+        for(int ix=0;ix<w;++ix){
+            actColor = uchar(*(source+step*(iy*w+ix)));
+            actDist = maxDistance;
+            for(int jy=std::max(0,iy-window); jy<=std::min(h-1,iy+window); ++jy)
+                for(int jx=std::max(0,ix-window); jx<=std::min(w-1,ix+window); ++jx)
                     if( uchar(*(source+step*(jy*w+jx))) != actColor){
                         newDist = sqrt(float(pow(ix-jx,2)+pow(iy-jy,2)));
                         if(newDist < actDist)
@@ -162,17 +165,15 @@ void DistanceTransform::sedt(const unsigned char threshold)
                     }
             switch(uchar(*(source+step*(iy*w+ix))) ){
                 case 0: 
-                    m_sedt[iy*w+ix] = 0.5f * (float(actDist)/float(threshold/2));
-                    //printf("%f\n", actDist);
+                    m_sedt[iy*w+ix] = 0.5f - 0.5f * (float(actDist)/float(maxDistance));
                     break;
-                case 255: 
-                    m_sedt[iy*w+ix] = 0.5f + 0.5f * (float(actDist)/float(threshold/2));
+                case 255:
+                    m_sedt[iy*w+ix] = 0.5f + 0.5f * (float(actDist)/float(maxDistance));
                     break;
                 default: 
                     m_sedt[iy*w+ix] = 0.5f;
             }
-        }*/
-
+        }
 
 
     // ...

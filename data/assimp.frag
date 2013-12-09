@@ -40,7 +40,7 @@ void main()
 	{
 		// Task_3_3 - ToDo Begin
 	
-		// shadow = ...?
+		shadow = 1.0;
 
 		// Task_3_3 - ToDo End
 	}
