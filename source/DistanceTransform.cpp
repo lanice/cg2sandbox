@@ -149,7 +149,7 @@ void DistanceTransform::sedt(const unsigned char threshold)
     float newDist = 0.0;
     float actDist = 0.0;
     uchar actColor = 0;
-    int window = 30;
+    int window = 7;
     float maxDistance = sqrt(float(pow(window,2)+pow(window,2))) + 1.f;
 
     for(int iy=0;iy<h;++iy)
@@ -159,7 +159,7 @@ void DistanceTransform::sedt(const unsigned char threshold)
             for(int jy=std::max(0,iy-window); jy<=std::min(h-1,iy+window); ++jy)
                 for(int jx=std::max(0,ix-window); jx<=std::min(w-1,ix+window); ++jx)
                     if( uchar(*(source+step*(jy*w+jx))) != actColor){
-                        newDist = sqrt(float(pow(ix-jx,2)+pow(iy-jy,2)));
+                        newDist = sqrtf(pow(ix-jx,2)+pow(iy-jy,2));
                         if(newDist < actDist)
                             actDist = newDist;
                     }
