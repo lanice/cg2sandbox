@@ -15,7 +15,7 @@ out vec3 v_normal;
 out vec2 v_texc;
 out vec3 v_eye;
 out vec3 v_light;
-out vec3 v_shadow;
+out vec4 v_shadow;
 
 void main()
 {
@@ -27,7 +27,7 @@ void main()
 
 	// Task_3_3 - ToDo Begin
 	
-	v_shadow = (viewProjection * model * vec4(a_vertex,1.0)).xyz;
+	v_shadow = viewProjection * model * vec4(a_vertex,1.0);
 
 	// Task_3_3 - ToDo End
 	

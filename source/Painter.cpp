@@ -477,12 +477,10 @@ void Painter::paint_3_3_shadowmap(float timef)
 
     QOpenGLShaderProgram * program(m_programs[ShadowMapProgram]);
     // Task_3_3 - ToDo Begin
-	
+    
     QVector3D light = m_light.normalized();
-    QVector3D right = QVector3D::crossProduct(-light, QVector3D(0.f,1.f,0.f));
-    right.normalize();
-    QVector3D up = QVector3D::crossProduct(right, -light);
-    up.normalize();
+    QVector3D right = QVector3D::crossProduct(QVector3D(0.f,1.f,0.f), light);
+    QVector3D up = QVector3D::crossProduct(light, right);
 
     QMatrix4x4 L(
         right.x(), right.y(), right.z(), 0.f,
@@ -491,9 +489,8 @@ void Painter::paint_3_3_shadowmap(float timef)
         0.f, 0.f, 0.f, 1.f);
 
     L.setToIdentity();
-    L.lookAt(-m_light,QVector3D(0.0,0.0,0.0),QVector3D(0.0,0.1,0.0));
-    L.perspective(90, 1, 0.1, 200);
-
+    L.perspective(70,1.f,0.1f,10);
+    L.lookAt(m_light,QVector3D(0.f,0.f,0.f),QVector3D(0.f,0.1f,0.f));
 
     // Task_3_3 - ToDo End
 
@@ -542,10 +539,8 @@ void Painter::paint_3_4(float timef)
     // Task_3_3 - ToDo Begin
 	
     QVector3D light = m_light.normalized();
-    QVector3D right = QVector3D::crossProduct(-light, QVector3D(0.f,1.f,0.f));
-    right.normalize();
-    QVector3D up = QVector3D::crossProduct(right, -light);
-    up.normalize();
+    QVector3D right = QVector3D::crossProduct(QVector3D(0.f,1.f,0.f), light);
+    QVector3D up = QVector3D::crossProduct(light, right);
 
     QMatrix4x4 L(
         right.x(), right.y(), right.z(), 0.f,
@@ -553,9 +548,9 @@ void Painter::paint_3_4(float timef)
         light.x(), light.y(), light.z(), 0.f,
         0.f, 0.f, 0.f, 1.f);
 
-    L.setToIdentity();
-    L.lookAt(-m_light,QVector3D(0.0,0.0,0.0),QVector3D(0.0,0.1,0.0));
-    L.perspective(90, 1, 0.1, 200);
+     L.setToIdentity();
+     L.perspective(70,1.f,0.1f,10);
+     L.lookAt(m_light,QVector3D(0.f,0.f,0.f),QVector3D(0.f,0.1f,0.f));
     
     program->bind();
     program->setUniformValue("light", m_light);

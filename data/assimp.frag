@@ -18,7 +18,7 @@ in vec3 v_normal;
 in vec2 v_texc;
 in vec3 v_eye;
 in vec3 v_light;
-in vec3 v_shadow;
+in vec4 v_shadow;
 
 void main()
 {
@@ -42,18 +42,17 @@ void main()
 	if(useshadow)
 	{
 		// Task_3_3 - ToDo Begin
-	
-		a = v_shadow/2 + vec3(0.5);
+		
+		vec3 v_shadow_vec3 = v_shadow.xyz/v_shadow.w;
+
+		a = v_shadow_vec3*0.5 + vec3(0.5);
 
 		depth = texture2D(shadowmap, a.xy).r;
 
-		if (depth < a.z)
-		shadow = 0.0;
+		if (depth < a.z-0.0004)
+			shadow = 0.0;
 
 		// Task_3_3 - ToDo End
 	}
-	shadow = 1.0;
 	fragColor = vec4(mix(ambient.xyz * d.xyz, d.xyz * shadow, ldotn) + s.xyz + emissive.xyz, 1.0);
-	// fragColor = vec4(vec3(a.z),1.0);
-	//fragColor = vec4(vec3(depth),1.0);
 }
