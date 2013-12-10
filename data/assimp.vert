@@ -4,7 +4,6 @@ uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
 uniform mat4 viewProjection;
-uniform mat4 matrix;
 
 uniform vec3 light;
 
@@ -16,6 +15,7 @@ out vec3 v_normal;
 out vec2 v_texc;
 out vec3 v_eye;
 out vec3 v_light;
+out vec3 v_shadow;
 
 void main()
 {
@@ -27,7 +27,7 @@ void main()
 
 	// Task_3_3 - ToDo Begin
 	
-	// v_shadow = ...;
+	v_shadow = (viewProjection * model * vec4(a_vertex,1.0)).xyz;
 
 	// Task_3_3 - ToDo End
 	

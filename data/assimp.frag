@@ -18,6 +18,7 @@ in vec3 v_normal;
 in vec2 v_texc;
 in vec3 v_eye;
 in vec3 v_light;
+in vec3 v_shadow;
 
 void main()
 {
@@ -29,21 +30,30 @@ void main()
 	float ldotn = max(dot(l, n), 0.0); 
 	float rdotn = max(dot(r, l), 0.0);
 
-	vec4 s = specular * clamp(pow(rdotn, shininess), 0.0, 1.0); 
+	vec4 s = specular * clamp(pow(rdotn, shininess), 0.0, 1.0);
 
 	vec4 d = diffuse;
 	if(texCount > 0)
 		d = texture(difftex, v_texc);
 
 	float shadow = 1.0;
+	float depth;
+	vec3 a;
 	if(useshadow)
 	{
 		// Task_3_3 - ToDo Begin
 	
-		shadow = 1.0;
+		a = v_shadow/2 + vec3(0.5);
+
+		depth = texture2D(shadowmap, a.xy).r;
+
+		if (depth < a.z)
+		shadow = 0.0;
 
 		// Task_3_3 - ToDo End
 	}
-
+	shadow = 1.0;
 	fragColor = vec4(mix(ambient.xyz * d.xyz, d.xyz * shadow, ldotn) + s.xyz + emissive.xyz, 1.0);
+	// fragColor = vec4(vec3(a.z),1.0);
+	//fragColor = vec4(vec3(depth),1.0);
 }

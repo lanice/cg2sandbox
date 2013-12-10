@@ -478,15 +478,21 @@ void Painter::paint_3_3_shadowmap(float timef)
     QOpenGLShaderProgram * program(m_programs[ShadowMapProgram]);
     // Task_3_3 - ToDo Begin
 	
-	QVector3D light = m_light.normalized();
-	QVector3D right = QVector3D::crossProduct(QVector3D(0.f,1.f,0.f),light);
-	QVector3D up = QVector3D::crossProduct(light,right);
+    QVector3D light = m_light.normalized();
+    QVector3D right = QVector3D::crossProduct(-light, QVector3D(0.f,1.f,0.f));
+    right.normalize();
+    QVector3D up = QVector3D::crossProduct(right, -light);
+    up.normalize();
 
-	QMatrix4x4 L(
-		right.x(), right.y(), right.z(), 0.f,
-		up.x(), up.y(), up.z(), 0.f,
-		light.x(), light.y(), light.z(), 0.f,
-		0.f, 0.f, 0.f, 1.f);
+    QMatrix4x4 L(
+        right.x(), right.y(), right.z(), 0.f,
+        up.x(), up.y(), up.z(), 0.f,
+        light.x(), light.y(), light.z(), 0.f,
+        0.f, 0.f, 0.f, 1.f);
+
+    L.setToIdentity();
+    L.lookAt(-m_light,QVector3D(0.0,0.0,0.0),QVector3D(0.0,0.1,0.0));
+    L.perspective(90, 1, 0.1, 200);
 
 
     // Task_3_3 - ToDo End
@@ -535,19 +541,25 @@ void Painter::paint_3_4(float timef)
 
     // Task_3_3 - ToDo Begin
 	
-	QVector3D light = m_light.normalized();
-	QVector3D right = QVector3D::crossProduct(QVector3D(0.f,1.f,0.f),light);
-	QVector3D up = QVector3D::crossProduct(light,right);
+    QVector3D light = m_light.normalized();
+    QVector3D right = QVector3D::crossProduct(-light, QVector3D(0.f,1.f,0.f));
+    right.normalize();
+    QVector3D up = QVector3D::crossProduct(right, -light);
+    up.normalize();
 
     QMatrix4x4 L(
-		right.x(), right.y(), right.z(), 0.f,
-		up.x(), up.y(), up.z(), 0.f,
-		light.x(), light.y(), light.z(), 0.f,
-		0.f, 0.f, 0.f, 1.f);
+        right.x(), right.y(), right.z(), 0.f,
+        up.x(), up.y(), up.z(), 0.f,
+        light.x(), light.y(), light.z(), 0.f,
+        0.f, 0.f, 0.f, 1.f);
+
+    L.setToIdentity();
+    L.lookAt(-m_light,QVector3D(0.0,0.0,0.0),QVector3D(0.0,0.1,0.0));
+    L.perspective(90, 1, 0.1, 200);
     
     program->bind();
     program->setUniformValue("light", m_light);
-    program->setUniformValue("matrix", L);
+    program->setUniformValue("viewProjection", L);
     program->release();
 
     // Task_3_3 - ToDo End
