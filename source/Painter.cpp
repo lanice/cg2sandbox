@@ -187,7 +187,7 @@ bool Painter::initialize()
         QImage image("data/hpicgs_label_bitmask.png");
 
         // ToDo: pre resize?
-        image = image.scaled(800, 200);
+        image = image.scaled(1024, 256);
 
         DistanceTransform DT(image, 512, 128, 0.0625f);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 512, 128, 0, GL_RED, GL_FLOAT, DT.data());
@@ -206,7 +206,7 @@ bool Painter::initialize()
         QImage image("data/companion_cube_label_bitmask.png");
 
         // ToDo: pre resize?
-        image = image.scaled(1000, 250);
+        image = image.scaled(1024, 256);
 
         DistanceTransform DT(image, 512, 128, 0.0625f);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 512, 128, 0, GL_RED, GL_FLOAT, DT.data());
