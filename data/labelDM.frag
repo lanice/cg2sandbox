@@ -31,7 +31,7 @@ void main()
 
 	float a = texture(label, v_uv).r;
 
-	fragColor = vec4( vec3(0.0), aastep(0.5,a));
+	fragColor = vec4( vec3(0.0), aastep(0.497,a));
 	
 	// Task_3_2 - ToDo End
 }
