@@ -18,9 +18,9 @@ void main()
 
 	float a = texture(label, v_uv).x;
 
-	if(a < 0.2) discard;
+	if(a < 0.4) discard;
 
-	fragColor = vec4(vec3(0.0), a);
+	fragColor = vec4(vec3(0.0), smoothstep(0.4,0.6,a));
 	
 	// Task_3_1 - ToDo End
 }

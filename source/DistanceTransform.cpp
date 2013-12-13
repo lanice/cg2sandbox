@@ -165,10 +165,10 @@ void DistanceTransform::sedt(const unsigned char threshold)
                     }
             switch(uchar(*(source+step*(iy*w+ix))) ){
                 case 0: 
-                    m_sedt[iy*w+ix] = 0.5f - m_distScale * (float(actDist)/float(maxDistance));
+                    m_sedt[iy*w+ix] = 0.5f - m_distScale* 0.5 * (float(actDist)/float(maxDistance));
                     break;
                 case 255:
-                    m_sedt[iy*w+ix] = 0.5f + m_distScale *  (float(actDist)/float(maxDistance));
+                    m_sedt[iy*w+ix] = 0.5f + m_distScale* 0.5 * (float(actDist)/float(maxDistance));
                     break;
                 default: 
                     m_sedt[iy*w+ix] = 0.5f;
