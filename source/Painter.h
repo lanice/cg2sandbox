@@ -50,6 +50,7 @@ protected:
     ,   const QString & geometryShaderFileName
     ,   const QString & fragmentShaderFileName);
 
+	int subTile(float length, QVector3D from, QVector3D to);
     void patchify();
     void patchify(
         float extend

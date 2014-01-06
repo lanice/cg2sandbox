@@ -5,6 +5,7 @@
 #include <QVector4D>
 #include <QRectF>
 #include <QPolygonF>
+#include <qmath.h>
 
 #include "Terrain.h"
 #include "FileAssociatedShader.h"
@@ -21,6 +22,7 @@ namespace
 {
 }
 
+static const float pScale = 1.3f;
 
 Painter::Painter()
 : m_camera(nullptr)
@@ -287,6 +289,19 @@ bool Painter::cull(
     return false;
 }
 
+int Painter::subTile(float length, QVector3D from, QVector3D to){
+	QVector3D center = (from + to)/2.f- QVector3D(4.f,0.f,4.f);
+	QVector3D cam(m_cachedEye);
+	float dist = (cam - center).length();
+	float epsilon = pScale * length / dist;
+	printf("%f %f %f\n",cam.x(),cam.y(), cam.z());
+
+	if (epsilon>1.f)
+		return -1;
+
+	return qCeil(epsilon*2);
+}
+
 void Painter::patchify(
     const float extend
 ,   const float x
@@ -306,20 +321,32 @@ void Painter::patchify(
     // /passes/recursions you need.
 
     // Checkt out the paper "Seamless Patches for GPU-Based Terrain Rendering"
+	
+	QVector3D tl(x,0.f,z);
+	QVector3D tr(x+extend,0.f,z);
+	QVector3D bl(x,0.f,z+extend);
+	QVector3D br(x+extend,0.f,z+extend);
+	
+	int subTileB = subTile(extend,bl,br);
+	int subTileR = subTile(extend,tr,br);
+	int subTileT = subTile(extend,tl,tr);
+	int subTileL = subTile(extend,tl,bl);
 
-    //if () // needs subdivide?
-    //{
-    //}
-    //else // draw patch!
-    //{
-    //    // check culling
-
-    //    //if (cull(.., .., ..))
-    //    //    xLOD = 3;
-    //    // ...
-
-    //    //m_terrain->drawPatch(QVector3D(x, 0.0, z), extend, bLOD, rLOD, tLOD, lLOD);
-    //}
+    if (level < m_level &&
+		(   subTileB < 0
+		|| subTileR < 0
+		|| subTileT < 0
+		|| subTileL < 0)) // needs subdivide?
+    {
+		patchify(extend/2.f,x,z,level+1);
+		patchify(extend/2.f,x,z+extend/2.f,level+1);
+		patchify(extend/2.f,x+extend/2.f,z,level+1);
+		patchify(extend/2.f,x+extend/2.f,z+extend/2.f,level+1);
+    }
+    else // draw patch!
+    {
+        m_terrain->drawPatch(QVector3D(x-(8.f-extend)/2.f, 0.0, z-(8.f-extend)/2.f), extend, 1, 1, 1, 1);
+    }
 
     // Task_4_1 - ToDo End
 }
