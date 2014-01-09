@@ -15,6 +15,26 @@ class ScreenAlignedQuad;
 class PatchedTerrain;
 
 
+typedef struct Quad{
+	Quad* content[4];
+	float scale;
+	QVector3D position;
+	unsigned char bottom;
+	unsigned char right;
+	unsigned char top;
+	unsigned char left;
+
+	void clearQuad(){
+		if(content[0] == nullptr)
+			return;
+		for (int i=0; i<4; i++){
+			 content[i]->clearQuad();
+			 delete content[i];
+			 content[i] = nullptr;
+		}
+	}
+}Quad;
+
 class Painter : public AbstractPainter
 {
 public:
@@ -51,12 +71,15 @@ protected:
     ,   const QString & fragmentShaderFileName);
 
 	int subTile(float length, QVector3D from, QVector3D to);
+	void paintQuad(Quad *root);
+	void correctLOD(Quad *root);
     void patchify();
     void patchify(
         float extend
     ,   float x
     ,   float z
-    ,   int level);
+    ,   int level
+	,   Quad* root);
    
     float height(
         const float x

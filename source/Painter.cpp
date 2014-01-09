@@ -22,7 +22,7 @@ namespace
 {
 }
 
-static const float pScale = 1.3f;
+static const float pScale = 1.0f;
 
 Painter::Painter()
 : m_camera(nullptr)
@@ -51,6 +51,7 @@ Painter::~Painter()
 
 bool Painter::initialize()
 {
+
     initializeOpenGLFunctions();
 
     // Note: As always, feel free to change/modify parameters .. as long as its possible to 
@@ -264,7 +265,18 @@ void Painter::patchify()
     // You can modify the signature of patchify as it pleases you.
     // This function is called whenever the camera changes.
 
-    patchify(8.f, 0.f, 0.f, 0);
+	Quad *quadTreeRoot = new Quad;
+
+	quadTreeRoot = new Quad;
+	for(int i=0; i<4; i++)
+		quadTreeRoot->content[i] = nullptr;
+
+    patchify(8.f, 0.f, 0.f, 0, quadTreeRoot);
+	correctLOD(quadTreeRoot);
+	paintQuad(quadTreeRoot);
+	
+	quadTreeRoot->clearQuad();
+	delete quadTreeRoot;
 
     // Task_4_1 - ToDo End
 }
@@ -289,13 +301,27 @@ bool Painter::cull(
     return false;
 }
 
+void Painter::paintQuad(Quad *root){
+	if(root->content[0] == nullptr){
+		m_terrain->drawPatch(root->position, root->scale, root->bottom, root->right, root->top, root->left);
+	}else{
+		for(int i=0;i<4;i++)
+			paintQuad(root->content[i]);
+	}
+}
+
+void Painter::correctLOD(Quad *root){
+	//TODO: correct bottom, left, ... of all neighboured quads to have correct edges
+}
+
 int Painter::subTile(float length, QVector3D from, QVector3D to){
 	QVector3D center = (from + to)/2.f- QVector3D(4.f,0.f,4.f);
 	QVector3D cam(m_cachedEye);
 	float dist = (cam - center).length();
 	float epsilon = pScale * length / dist;
-	printf("%f %f %f\n",cam.x(),cam.y(), cam.z());
-
+	
+	if (epsilon>2.f)
+		return -2;
 	if (epsilon>1.f)
 		return -1;
 
@@ -306,7 +332,8 @@ void Painter::patchify(
     const float extend
 ,   const float x
 ,   const float z
-,   const int level)
+,   const int level
+,   Quad *root)
 {
     // Task_4_1 - ToDo Begin
 
@@ -322,10 +349,10 @@ void Painter::patchify(
 
     // Checkt out the paper "Seamless Patches for GPU-Based Terrain Rendering"
 	
-	QVector3D tl(x,0.f,z);
-	QVector3D tr(x+extend,0.f,z);
-	QVector3D bl(x,0.f,z+extend);
-	QVector3D br(x+extend,0.f,z+extend);
+	QVector3D br(x,0.f,z);
+	QVector3D bl(x+extend,0.f,z);
+	QVector3D tr(x,0.f,z+extend);
+	QVector3D tl(x+extend,0.f,z+extend);
 	
 	int subTileB = subTile(extend,bl,br);
 	int subTileR = subTile(extend,tr,br);
@@ -333,19 +360,36 @@ void Painter::patchify(
 	int subTileL = subTile(extend,tl,bl);
 
     if (level < m_level &&
-		(   subTileB < 0
+		(  subTileB < 0
 		|| subTileR < 0
 		|| subTileT < 0
 		|| subTileL < 0)) // needs subdivide?
     {
-		patchify(extend/2.f,x,z,level+1);
-		patchify(extend/2.f,x,z+extend/2.f,level+1);
-		patchify(extend/2.f,x+extend/2.f,z,level+1);
-		patchify(extend/2.f,x+extend/2.f,z+extend/2.f,level+1);
+		for(int i=0; i<4; i++){
+			Quad *q = new Quad;
+			for(int j=0; j<4; j++)
+				q->content[j] = nullptr;
+			root->content[i] = q;
+			root->bottom = subTileB;
+			root->left = subTileL;
+			root->top = subTileT;
+			root->right= subTileR;
+		}
+
+		patchify(extend/2.f, x, z, level+1, root->content[0]);
+		patchify(extend/2.f, x, z+extend/2.f, level+1, root->content[1]);
+		patchify(extend/2.f, x+extend/2.f, z, level+1, root->content[2]);
+		patchify(extend/2.f, x+extend/2.f, z+extend/2.f, level+1, root->content[3]);
     }
     else // draw patch!
     {
-        m_terrain->drawPatch(QVector3D(x-(8.f-extend)/2.f, 0.0, z-(8.f-extend)/2.f), extend, 1, 1, 1, 1);
+		root->position = QVector3D(x-(8.f-extend)/2.f, 0.0, z-(8.f-extend)/2.f);
+		root->scale = extend;
+		root->bottom = subTileB;
+		root->left = subTileL;
+		root->top = subTileT;
+		root->right= subTileR;
+        //m_terrain->drawPatch(QVector3D(x-(8.f-extend)/2.f, 0.0, z-(8.f-extend)/2.f), extend, 1, 1, 1, 1);
     }
 
     // Task_4_1 - ToDo End
