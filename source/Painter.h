@@ -19,10 +19,10 @@ typedef struct Quad{
 	Quad* content[4];
 	float scale;
 	QVector3D position;
-	unsigned char bottom;
-	unsigned char right;
-	unsigned char top;
-	unsigned char left;
+	unsigned char bottomLOD;
+	unsigned char rightLOD;
+	unsigned char topLOD;
+	unsigned char leftLOD;
 
 	void clearQuad(){
 		if(content[0] == nullptr)

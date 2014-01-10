@@ -303,15 +303,51 @@ bool Painter::cull(
 
 void Painter::paintQuad(Quad *root){
 	if(root->content[0] == nullptr){
-		m_terrain->drawPatch(root->position, root->scale, root->bottom, root->right, root->top, root->left);
+		m_terrain->drawPatch(root->position, root->scale, root->bottomLOD, root->rightLOD, root->topLOD, root->leftLOD);
 	}else{
 		for(int i=0;i<4;i++)
 			paintQuad(root->content[i]);
 	}
 }
 
+void correctLODVert(Quad *left, Quad *right){
+	// if left is not devided further
+	if(left->content[0] == nullptr){
+		//if right is not devided further
+		if(right->content[0] == nullptr){
+			if(left->scale > right->scale){
+				right->leftLOD = 1;//right->scale * left->rightLOD/left->scale;
+				left->rightLOD = 2;
+			}else if (left->scale < right->scale){
+				left->rightLOD = 1;//left->scale * right->leftLOD/right->scale;
+				right->leftLOD = 2;
+			}
+		}else{
+			correctLODVert(left, right->content[0]);
+			correctLODVert(left, right->content[2]);
+		}	
+	}else{
+		//if right is not devided further
+		if(right->content[0] == nullptr){
+			correctLODVert(left->content[1], right);
+			correctLODVert(left->content[3], right);
+		}else{
+			correctLODVert(left->content[1], right->content[0]);
+			correctLODVert(left->content[3], right->content[2]);
+		}
+	}
+}
+
 void Painter::correctLOD(Quad *root){
 	//TODO: correct bottom, left, ... of all neighboured quads to have correct edges
+	if (root->content[0] == nullptr)
+		return;
+	for(int i=0; i<4; i++)
+		correctLOD(root->content[i]);
+	
+	correctLODVert(root->content[0], root->content[1]);
+	correctLODVert(root->content[2], root->content[3]);
+
 }
 
 int Painter::subTile(float length, QVector3D from, QVector3D to){
@@ -370,25 +406,21 @@ void Painter::patchify(
 			for(int j=0; j<4; j++)
 				q->content[j] = nullptr;
 			root->content[i] = q;
-			root->bottom = subTileB;
-			root->left = subTileL;
-			root->top = subTileT;
-			root->right= subTileR;
 		}
 
-		patchify(extend/2.f, x, z, level+1, root->content[0]);
-		patchify(extend/2.f, x, z+extend/2.f, level+1, root->content[1]);
+		patchify(extend/2.f, x, z, level+1, root->content[3]);
 		patchify(extend/2.f, x+extend/2.f, z, level+1, root->content[2]);
-		patchify(extend/2.f, x+extend/2.f, z+extend/2.f, level+1, root->content[3]);
+		patchify(extend/2.f, x, z+extend/2.f, level+1, root->content[1]);
+		patchify(extend/2.f, x+extend/2.f, z+extend/2.f, level+1, root->content[0]);
     }
     else // draw patch!
     {
 		root->position = QVector3D(x-(8.f-extend)/2.f, 0.0, z-(8.f-extend)/2.f);
 		root->scale = extend;
-		root->bottom = subTileB;
-		root->left = subTileL;
-		root->top = subTileT;
-		root->right= subTileR;
+		root->bottomLOD = subTileB;
+		root->leftLOD = subTileL;
+		root->topLOD = subTileT;
+		root->rightLOD = subTileR;
         //m_terrain->drawPatch(QVector3D(x-(8.f-extend)/2.f, 0.0, z-(8.f-extend)/2.f), extend, 1, 1, 1, 1);
     }
 
