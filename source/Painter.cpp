@@ -22,7 +22,7 @@ namespace
 {
 }
 
-static const float pScale = 1.0f;
+static const float pScale = 1.4f;
 
 Painter::Painter()
 : m_camera(nullptr)
@@ -86,7 +86,7 @@ bool Painter::initialize()
     // Pick your maximum tree traversal depth/level (or recursion depth)
     // This should limit the minimum extend of a single patch in respect to the terrain 
     // and your approach (4x4 or 2x2 subdivisions)
-    m_level = 2;
+    m_level = 4;
     // Pick a starting LOD for your patches (the enumeration still remains on 0, 1, and 2, but the
     // with each starting level, the resulting tiles are subdivided further, resulting in more detailed tiles.
     m_terrain = new PatchedTerrain(2, *this);
@@ -302,62 +302,106 @@ bool Painter::cull(
 }
 
 void Painter::paintQuad(Quad *root){
+	// if leaf draw
 	if(root->content[0] == nullptr){
-		m_terrain->drawPatch(root->position, root->scale, root->bottomLOD, root->rightLOD, root->topLOD, root->leftLOD);
+		m_terrain->drawPatch(root->position, root->scale, root->LOD[0], root->LOD[1], root->LOD[2], root->LOD[3]);
 	}else{
+		// if not leaf draw all subPatches
 		for(int i=0;i<4;i++)
 			paintQuad(root->content[i]);
 	}
 }
 
-void correctLODVert(Quad *left, Quad *right){
+// compares LODs of neighboured patches 
+// (left and right is bottom and top when horizontal line comparison)
+void correctLODVert(Quad *right, Quad *left, bool vertical){
+	// index of LOD-triangle (0-bottom, 1-right, 2-top, 3-left)
+	int rightTriIndex, leftTriIndex;
+	int BRPatch, BLPatch, TRPatch, TLPatch;
+
+	if(vertical){
+		// compare right LOD of left path with left LOD of right patch
+		rightTriIndex = 1;
+		leftTriIndex = 3;
+		BRPatch = 0;
+		BLPatch = 1;
+		TRPatch = 2;
+		TLPatch = 3;
+	}else{
+		// compare top LOD of bottom path with bottom LOD of top patch
+		rightTriIndex = 0;
+		leftTriIndex = 2;
+		BRPatch = 1;
+		BLPatch = 3;
+		TRPatch = 0;
+		TLPatch = 2;
+	}
 	// if left is not devided further
 	if(left->content[0] == nullptr){
-		//if right is not devided further
+		// if right is not devided further
 		if(right->content[0] == nullptr){
+			// if scale of neighboured patches is different
 			if(left->scale > right->scale){
-				right->leftLOD = 1;//right->scale * left->rightLOD/left->scale;
-				left->rightLOD = 2;
-			}else if (left->scale < right->scale){
-				left->rightLOD = 1;//left->scale * right->leftLOD/right->scale;
-				right->leftLOD = 2;
+				// index 0 is never in use 
+				// (when patch with LOD 2 is divided it has to be 1 to keep resolution)
+				// compare left and right LOD
+				right->LOD[leftTriIndex] = 1;
+				left->LOD[rightTriIndex] = 2;
+			}else{ 
+				if (left->scale < right->scale){
+					right->LOD[leftTriIndex] = 2;
+					left->LOD[rightTriIndex] = 1;
+				}
 			}
 		}else{
-			correctLODVert(left, right->content[0]);
-			correctLODVert(left, right->content[2]);
+			// compare LODs of left subPatches of right with LODs of left
+			correctLODVert(right->content[BLPatch], left, vertical);
+			correctLODVert(right->content[TLPatch], left, vertical);
 		}	
+	// if left is devided further
 	}else{
-		//if right is not devided further
+		// if right is not devided further
 		if(right->content[0] == nullptr){
-			correctLODVert(left->content[1], right);
-			correctLODVert(left->content[3], right);
+			// compare LODs of right subPatches of left with LODs of right
+			correctLODVert(right, left->content[BRPatch], vertical);
+			correctLODVert(right, left->content[TRPatch], vertical);
 		}else{
-			correctLODVert(left->content[1], right->content[0]);
-			correctLODVert(left->content[3], right->content[2]);
+			// compare LODs of right subPatches of left with LODs of left subPatches of right
+			correctLODVert(right->content[BLPatch], left->content[BRPatch], vertical);
+			correctLODVert(right->content[TLPatch], left->content[TRPatch], vertical);
 		}
 	}
 }
 
 void Painter::correctLOD(Quad *root){
-	//TODO: correct bottom, left, ... of all neighboured quads to have correct edges
+	// if leaf (patch) => nothing to correct (no eges in it)
 	if (root->content[0] == nullptr)
 		return;
+
+	// correct LODs on edges in all subPatches
 	for(int i=0; i<4; i++)
 		correctLOD(root->content[i]);
 	
-	correctLODVert(root->content[0], root->content[1]);
-	correctLODVert(root->content[2], root->content[3]);
+	// vertical edge correction
+	// bottom-right <-> bottom-left
+	correctLODVert(root->content[0], root->content[1], true);
+	// top-right <-> top-left
+	correctLODVert(root->content[2], root->content[3], true);
 
+	// horizontal edge correction
+	// bottom-right <-> top-right
+	correctLODVert(root->content[0], root->content[2], false);
+	// bottom-left <-> top-left
+	correctLODVert(root->content[1], root->content[3], false);
 }
 
-int Painter::subTile(float length, QVector3D from, QVector3D to){
+// calculate LOD (returns -1 when patch has do be devided)
+int Painter::calcLOD(float length, QVector3D from, QVector3D to){
 	QVector3D center = (from + to)/2.f- QVector3D(4.f,0.f,4.f);
 	QVector3D cam(m_cachedEye);
 	float dist = (cam - center).length();
 	float epsilon = pScale * length / dist;
 	
-	if (epsilon>2.f)
-		return -2;
 	if (epsilon>1.f)
 		return -1;
 
@@ -385,22 +429,27 @@ void Painter::patchify(
 
     // Checkt out the paper "Seamless Patches for GPU-Based Terrain Rendering"
 	
+	// calculate vertices of patch
 	QVector3D br(x,0.f,z);
 	QVector3D bl(x+extend,0.f,z);
 	QVector3D tr(x,0.f,z+extend);
 	QVector3D tl(x+extend,0.f,z+extend);
 	
-	int subTileB = subTile(extend,bl,br);
-	int subTileR = subTile(extend,tr,br);
-	int subTileT = subTile(extend,tl,tr);
-	int subTileL = subTile(extend,tl,bl);
+	// calculate LOD for each tile of the patch
+	int lodB = calcLOD(extend,bl,br);
+	int lodR = calcLOD(extend,tr,br);
+	int lodT = calcLOD(extend,tl,tr);
+	int lodL = calcLOD(extend,tl,bl);
 
+	// if level is low enough for a devide
+	// and one LOD is < 0 (patch has to be devided)
     if (level < m_level &&
-		(  subTileB < 0
-		|| subTileR < 0
-		|| subTileT < 0
-		|| subTileL < 0)) // needs subdivide?
+		(  lodB < 0
+		|| lodR < 0
+		|| lodT < 0
+		|| lodL < 0))
     {
+		// generate 4 new patches
 		for(int i=0; i<4; i++){
 			Quad *q = new Quad;
 			for(int j=0; j<4; j++)
@@ -408,20 +457,19 @@ void Painter::patchify(
 			root->content[i] = q;
 		}
 
-		patchify(extend/2.f, x, z, level+1, root->content[3]);
-		patchify(extend/2.f, x+extend/2.f, z, level+1, root->content[2]);
-		patchify(extend/2.f, x, z+extend/2.f, level+1, root->content[1]);
-		patchify(extend/2.f, x+extend/2.f, z+extend/2.f, level+1, root->content[0]);
-    }
-    else // draw patch!
-    {
+		// BR, BL, TR, TL
+		patchify(extend/2.f, x, z, level+1, root->content[0]);
+		patchify(extend/2.f, x+extend/2.f, z, level+1, root->content[1]);
+		patchify(extend/2.f, x, z+extend/2.f, level+1, root->content[2]);
+		patchify(extend/2.f, x+extend/2.f, z+extend/2.f, level+1, root->content[3]);
+    }else{
+		// give patch its contents
 		root->position = QVector3D(x-(8.f-extend)/2.f, 0.0, z-(8.f-extend)/2.f);
 		root->scale = extend;
-		root->bottomLOD = subTileB;
-		root->leftLOD = subTileL;
-		root->topLOD = subTileT;
-		root->rightLOD = subTileR;
-        //m_terrain->drawPatch(QVector3D(x-(8.f-extend)/2.f, 0.0, z-(8.f-extend)/2.f), extend, 1, 1, 1, 1);
+		root->LOD[0] = lodB;
+		root->LOD[1] = lodR;
+		root->LOD[2] = lodT;
+		root->LOD[3] = lodL;
     }
 
     // Task_4_1 - ToDo End

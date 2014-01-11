@@ -19,10 +19,7 @@ typedef struct Quad{
 	Quad* content[4];
 	float scale;
 	QVector3D position;
-	unsigned char bottomLOD;
-	unsigned char rightLOD;
-	unsigned char topLOD;
-	unsigned char leftLOD;
+	unsigned char LOD[4];
 
 	void clearQuad(){
 		if(content[0] == nullptr)
@@ -70,7 +67,7 @@ protected:
     ,   const QString & geometryShaderFileName
     ,   const QString & fragmentShaderFileName);
 
-	int subTile(float length, QVector3D from, QVector3D to);
+	int calcLOD(float length, QVector3D from, QVector3D to);
 	void paintQuad(Quad *root);
 	void correctLOD(Quad *root);
     void patchify();
