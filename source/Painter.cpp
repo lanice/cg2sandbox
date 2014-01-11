@@ -299,9 +299,10 @@ bool Painter::cull(
     QVector4D screenPos = camera()->viewProjection() * position;
     float x = screenPos.x()/screenPos.w();
     float y = screenPos.y()/screenPos.w();
+    float z = screenPos.z()/screenPos.w();
 
 
-    return (x > 1.f || x < -1.f || y > 1.f || y < -1.f);
+    return (x > 1.f || x < -1.f || y > 1.f || y < -1.f || z < 0.f || z > 1.f);
 }
 
 void Painter::paintQuad(Quad *root){
