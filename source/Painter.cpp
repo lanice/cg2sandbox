@@ -301,23 +301,20 @@ bool Painter::cull(
     float x = screenPos.x()/screenPos.w();
     float y = screenPos.y()/screenPos.w();
 
-    QVector4D roof = camera()->viewProjection() * QVector4D(0.f, 0.f, 0.f, 1.f);
 
-    std::cerr << roof.x()/roof.w() << " : " << roof.y()/roof.w() << " : " << roof.z()/roof.w() << std::endl;;
-
-    // return (x > 1.f || x < -1.f || y > 1.f || y < -1.f);
-    return false;
+    return (x > 1.f || x < -1.f || y > 1.f || y < -1.f);
 }
 
 void Painter::paintQuad(Quad *root){
 	// if leaf draw
 	if(root->content[0] == nullptr){
-        if (!cull(QVector4D(root->position.x() + root->scale/2.f, root->position.y() + 0.f, root->position.z() + root->scale/2.f, 1.f)))
+        if (!cull(QVector4D(root->position.x(), root->position.y(), root->position.z(), 1.f)))
 		    m_terrain->drawPatch(root->position, root->scale, root->LOD[0], root->LOD[1], root->LOD[2], root->LOD[3]);
 	}else{
 		// if not leaf draw all subPatches
 		for(int i=0;i<4;i++)
 			paintQuad(root->content[i]);
+        std::cerr << std::endl;
 	}
 }
 
