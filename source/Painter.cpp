@@ -281,7 +281,6 @@ void Painter::patchify()
     // Task_4_1 - ToDo End
 }
 
-#include <iostream>
 bool Painter::cull(
     const QVector4D & position)
 {
