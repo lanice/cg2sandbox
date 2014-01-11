@@ -66,10 +66,12 @@ protected:
         const QString & vertexShaderFileName
     ,   const QString & geometryShaderFileName
     ,   const QString & fragmentShaderFileName);
-
-	int calcLOD(float length, QVector3D from, QVector3D to);
+	
 	void paintQuad(Quad *root);
-	void correctLOD(Quad *root);
+	void correctLOD(Quad *right, Quad *left, bool vertical);
+	void correctAllLOD(Quad *root);
+	float distToPatch(QVector3D &p1, QVector3D &p2);
+	int calcLOD(float length, QVector3D &from, QVector3D &to);
     void patchify();
     void patchify(
         float extend

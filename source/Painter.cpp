@@ -272,7 +272,7 @@ void Painter::patchify()
 		quadTreeRoot->content[i] = nullptr;
 
     patchify(8.f, 0.f, 0.f, 0, quadTreeRoot);
-	correctLOD(quadTreeRoot);
+	correctAllLOD(quadTreeRoot);
 	paintQuad(quadTreeRoot);
 	
 	quadTreeRoot->clearQuad();
@@ -314,27 +314,22 @@ void Painter::paintQuad(Quad *root){
 
 // compares LODs of neighboured patches 
 // (left and right is bottom and top when horizontal line comparison)
-void correctLODVert(Quad *right, Quad *left, bool vertical){
+void Painter::correctLOD(Quad *right, Quad *left, bool vertical){
+	// index of bottom-right patch
+	int BRPatch;
 	// index of LOD-triangle (0-bottom, 1-right, 2-top, 3-left)
-	int rightTriIndex, leftTriIndex;
-	int BRPatch, BLPatch, TRPatch, TLPatch;
+	int rightTriIndex;
 
 	if(vertical){
 		// compare right LOD of left path with left LOD of right patch
-		rightTriIndex = 1;
-		leftTriIndex = 3;
 		BRPatch = 0;
-		BLPatch = 1;
-		TRPatch = 2;
-		TLPatch = 3;
+		rightTriIndex = 1;
 	}else{
 		// compare top LOD of bottom path with bottom LOD of top patch
-		rightTriIndex = 0;
-		leftTriIndex = 2;
+		// rotatet 90° clockwise => BR is now at index 1
 		BRPatch = 1;
-		BLPatch = 3;
-		TRPatch = 0;
-		TLPatch = 2;
+		// right tile is, where bottom was (0)
+		rightTriIndex = 0;
 	}
 	// if left is not devided further
 	if(left->content[0] == nullptr){
@@ -345,61 +340,72 @@ void correctLODVert(Quad *right, Quad *left, bool vertical){
 				// index 0 is never in use 
 				// (when patch with LOD 2 is divided it has to be 1 to keep resolution)
 				// compare left and right LOD
-				right->LOD[leftTriIndex] = 1;
+				right->LOD[rightTriIndex+2] = 1;
 				left->LOD[rightTriIndex] = 2;
 			}else{ 
 				if (left->scale < right->scale){
-					right->LOD[leftTriIndex] = 2;
+					right->LOD[rightTriIndex+2] = 2;
 					left->LOD[rightTriIndex] = 1;
 				}
 			}
 		}else{
 			// compare LODs of left subPatches of right with LODs of left
-			correctLODVert(right->content[BLPatch], left, vertical);
-			correctLODVert(right->content[TLPatch], left, vertical);
+			correctLOD(right->content[BRPatch + 1], left, vertical);
+			correctLOD(right->content[BRPatch + 2], left, vertical);
 		}	
 	// if left is devided further
 	}else{
 		// if right is not devided further
 		if(right->content[0] == nullptr){
 			// compare LODs of right subPatches of left with LODs of right
-			correctLODVert(right, left->content[BRPatch], vertical);
-			correctLODVert(right, left->content[TRPatch], vertical);
+			correctLOD(right, left->content[BRPatch], vertical);
+			correctLOD(right, left->content[(BRPatch + 3)%4], vertical);
 		}else{
 			// compare LODs of right subPatches of left with LODs of left subPatches of right
-			correctLODVert(right->content[BLPatch], left->content[BRPatch], vertical);
-			correctLODVert(right->content[TLPatch], left->content[TRPatch], vertical);
+			correctLOD(right->content[BRPatch + 1], left->content[BRPatch], vertical);
+			correctLOD(right->content[BRPatch + 2], left->content[(BRPatch + 3)%4], vertical);
 		}
 	}
 }
 
-void Painter::correctLOD(Quad *root){
+void Painter::correctAllLOD(Quad *root){
 	// if leaf (patch) => nothing to correct (no eges in it)
 	if (root->content[0] == nullptr)
 		return;
 
 	// correct LODs on edges in all subPatches
 	for(int i=0; i<4; i++)
-		correctLOD(root->content[i]);
+		correctAllLOD(root->content[i]);
 	
 	// vertical edge correction
 	// bottom-right <-> bottom-left
-	correctLODVert(root->content[0], root->content[1], true);
+	correctLOD(root->content[0], root->content[1], true);
 	// top-right <-> top-left
-	correctLODVert(root->content[2], root->content[3], true);
+	correctLOD(root->content[3], root->content[2], true);
 
 	// horizontal edge correction
 	// bottom-right <-> top-right
-	correctLODVert(root->content[0], root->content[2], false);
+	correctLOD(root->content[0], root->content[3], false);
 	// bottom-left <-> top-left
-	correctLODVert(root->content[1], root->content[3], false);
+	correctLOD(root->content[1], root->content[2], false);
+}
+
+float Painter::distToPatch(QVector3D &p1, QVector3D &p2){
+	QVector3D direction = p2 - p1;
+	return(
+		qMax(
+			QVector3D::crossProduct(
+				m_cachedEye - p1,
+				direction
+			).length() / direction.length(),
+			qMin((p1 - m_cachedEye).length(),(p2 - m_cachedEye).length())
+		)
+	);
 }
 
 // calculate LOD (returns -1 when patch has do be devided)
-int Painter::calcLOD(float length, QVector3D from, QVector3D to){
-	QVector3D center = (from + to)/2.f- QVector3D(4.f,0.f,4.f);
-	QVector3D cam(m_cachedEye);
-	float dist = (cam - center).length();
+int Painter::calcLOD(float length, QVector3D &from, QVector3D &to){
+	float dist =  distToPatch(from, to);
 	float epsilon = pScale * length / dist;
 	
 	if (epsilon>1.f)
@@ -430,10 +436,12 @@ void Painter::patchify(
     // Checkt out the paper "Seamless Patches for GPU-Based Terrain Rendering"
 	
 	// calculate vertices of patch
-	QVector3D br(x,0.f,z);
-	QVector3D bl(x+extend,0.f,z);
-	QVector3D tr(x,0.f,z+extend);
-	QVector3D tl(x+extend,0.f,z+extend);
+	float newX = x - 4.f;
+	float newZ = z - 4.f;
+	QVector3D br(newX,0.f,newZ);
+	QVector3D bl(newX+extend,0.f,newZ);
+	QVector3D tr(newX,0.f,newZ+extend);
+	QVector3D tl(newX+extend,0.f,newZ+extend);
 	
 	// calculate LOD for each tile of the patch
 	int lodB = calcLOD(extend,bl,br);
@@ -457,11 +465,11 @@ void Painter::patchify(
 			root->content[i] = q;
 		}
 
-		// BR, BL, TR, TL
+		// BR, BL, TL, TR
 		patchify(extend/2.f, x, z, level+1, root->content[0]);
 		patchify(extend/2.f, x+extend/2.f, z, level+1, root->content[1]);
-		patchify(extend/2.f, x, z+extend/2.f, level+1, root->content[2]);
-		patchify(extend/2.f, x+extend/2.f, z+extend/2.f, level+1, root->content[3]);
+		patchify(extend/2.f, x+extend/2.f, z+extend/2.f, level+1, root->content[2]);
+		patchify(extend/2.f, x, z+extend/2.f, level+1, root->content[3]);
     }else{
 		// give patch its contents
 		root->position = QVector3D(x-(8.f-extend)/2.f, 0.0, z-(8.f-extend)/2.f);
