@@ -86,7 +86,7 @@ bool Painter::initialize()
     // Pick your maximum tree traversal depth/level (or recursion depth)
     // This should limit the minimum extend of a single patch in respect to the terrain 
     // and your approach (4x4 or 2x2 subdivisions)
-    m_level = 4;
+    m_level = 3;
     // Pick a starting LOD for your patches (the enumeration still remains on 0, 1, and 2, but the
     // with each starting level, the resulting tiles are subdivided further, resulting in more detailed tiles.
     m_terrain = new PatchedTerrain(2, *this);
@@ -281,10 +281,9 @@ void Painter::patchify()
     // Task_4_1 - ToDo End
 }
 
+#include <iostream>
 bool Painter::cull(
-    const QVector4D & v0
-,   const QVector4D & v1
-,   const QVector4D & v2)
+    const QVector4D & position)
 {
     // Task_4_1 - ToDo Begin
     
@@ -298,13 +297,23 @@ bool Painter::cull(
 
     // Task_4_1 - ToDo End
 
+    QVector4D screenPos = camera()->viewProjection() * position;
+    float x = screenPos.x()/screenPos.w();
+    float y = screenPos.y()/screenPos.w();
+
+    QVector4D roof = camera()->viewProjection() * QVector4D(0.f, 0.f, 0.f, 1.f);
+
+    std::cerr << roof.x()/roof.w() << " : " << roof.y()/roof.w() << " : " << roof.z()/roof.w() << std::endl;;
+
+    // return (x > 1.f || x < -1.f || y > 1.f || y < -1.f);
     return false;
 }
 
 void Painter::paintQuad(Quad *root){
 	// if leaf draw
 	if(root->content[0] == nullptr){
-		m_terrain->drawPatch(root->position, root->scale, root->LOD[0], root->LOD[1], root->LOD[2], root->LOD[3]);
+        if (!cull(QVector4D(root->position.x() + root->scale/2.f, root->position.y() + 0.f, root->position.z() + root->scale/2.f, 1.f)))
+		    m_terrain->drawPatch(root->position, root->scale, root->LOD[0], root->LOD[1], root->LOD[2], root->LOD[3]);
 	}else{
 		// if not leaf draw all subPatches
 		for(int i=0;i<4;i++)
