@@ -281,7 +281,6 @@ void Painter::patchify()
     // Task_4_1 - ToDo End
 }
 
-#include <iostream>
 bool Painter::cull(
     const QVector4D & position)
 {
@@ -314,7 +313,6 @@ void Painter::paintQuad(Quad *root){
 		// if not leaf draw all subPatches
 		for(int i=0;i<4;i++)
 			paintQuad(root->content[i]);
-        std::cerr << std::endl;
 	}
 }
 
