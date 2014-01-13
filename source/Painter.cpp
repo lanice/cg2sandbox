@@ -282,7 +282,11 @@ void Painter::patchify()
 }
 
 bool Painter::cull(
-    const QVector4D & position)
+    const QVector4D & point1,
+    const QVector4D & point2,
+    const QVector4D & point3,
+    const QVector4D & point4
+    )
 {
     // Task_4_1 - ToDo Begin
     
@@ -296,25 +300,52 @@ bool Painter::cull(
 
     // Task_4_1 - ToDo End
 
-    QVector4D screenPos = camera()->viewProjection() * position;
-    float x = screenPos.x()/screenPos.w();
-    float y = screenPos.y()/screenPos.w();
-    float z = screenPos.z()/screenPos.w();
+    QVector4D screenPos1 = camera()->viewProjection() * point1;
+    float x1 = screenPos1.x()/screenPos1.w();
+    float y1 = screenPos1.y()/screenPos1.w();
+    float z1 = screenPos1.z()/screenPos1.w();
+    QVector4D screenPos2 = camera()->viewProjection() * point2;
+    float x2 = screenPos2.x()/screenPos2.w();
+    float y2 = screenPos2.y()/screenPos2.w();
+    float z2 = screenPos2.z()/screenPos2.w();
+    QVector4D screenPos3 = camera()->viewProjection() * point3;
+    float x3 = screenPos3.x()/screenPos3.w();
+    float y3 = screenPos3.y()/screenPos3.w();
+    float z3 = screenPos3.z()/screenPos3.w();
+    QVector4D screenPos4 = camera()->viewProjection() * point4;
+    float x4 = screenPos4.x()/screenPos4.w();
+    float y4 = screenPos4.y()/screenPos4.w();
+    float z4 = screenPos4.z()/screenPos4.w();
+
+    return (
+        (x1 > 1.f && x2 > 1.f && x3 > 1.f && x4 > 1.f) ||
+        (x1 < -1.f && x2 < -1.f && x3 < -1.f && x4 < -1.f) ||
+        (y1 > 1.f && y2 > 1.f && y3 > 1.f && y4 > 1.f) ||
+        (y1 < -1.f && y2 < -1.f && y3 < -1.f && y4 < -1.f) ||
+        (z1 > 1.f && z2 > 1.f && z3 > 1.f && z4 > 1.f) ||
+        (z1 < 0.f && z2 < 0.f && z3 < 0.f && z4 < 0.f)
+        );
 
 
-    return (x > 1.f || x < -1.f || y > 1.f || y < -1.f || z < 0.f || z > 1.f);
+    // return (cullPoint(screenPos1) && cullPoint(screenPos2) && cullPoint(screenPos3) && cullPoint(screenPos4));
 }
 
 void Painter::paintQuad(Quad *root){
 	// if leaf draw
 	if(root->content[0] == nullptr){
-        if (!cull(QVector4D(root->position.x(), root->position.y(), root->position.z(), 1.f)))
+        if (!cull(QVector4D(root->position.x() - root->scale/2.f, height(root->position.x(), root->position.y()), root->position.z() - root->scale/2.f, 1.f),
+                  QVector4D(root->position.x() - root->scale/2.f, height(root->position.x(), root->position.y()), root->position.z() + root->scale/2.f, 1.f),
+                  QVector4D(root->position.x() + root->scale/2.f, height(root->position.x(), root->position.y()), root->position.z() - root->scale/2.f, 1.f),
+                  QVector4D(root->position.x() + root->scale/2.f, height(root->position.x(), root->position.y()), root->position.z() + root->scale/2.f, 1.f))
+            )
 		    m_terrain->drawPatch(root->position, root->scale, root->LOD[0], root->LOD[1], root->LOD[2], root->LOD[3]);
-	}else{
-		// if not leaf draw all subPatches
-		for(int i=0;i<4;i++)
-			paintQuad(root->content[i]);
-	}
+        else printf("Cull!\n");
+    printf("-----------------------\n");
+    }else{
+        // if not leaf draw all subPatches
+        for(int i=0;i<4;i++)
+            paintQuad(root->content[i]);
+    }
 }
 
 // compares LODs of neighboured patches 

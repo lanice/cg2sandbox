@@ -85,7 +85,11 @@ protected:
     ,   const float z) const;
 
     bool cull(
-        const QVector4D & position);
+        const QVector4D & point1,
+        const QVector4D & point2,
+        const QVector4D & point3,
+        const QVector4D & point4
+        );
 
     // ...
 
