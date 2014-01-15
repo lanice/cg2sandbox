@@ -339,8 +339,6 @@ void Painter::paintQuad(Quad *root){
                   QVector4D(root->position.x() + root->scale/2.f, height(root->position.x(), root->position.y()), root->position.z() + root->scale/2.f, 1.f))
             )
 		    m_terrain->drawPatch(root->position, root->scale, root->LOD[0], root->LOD[1], root->LOD[2], root->LOD[3]);
-        else printf("Cull!\n");
-    printf("-----------------------\n");
     }else{
         // if not leaf draw all subPatches
         for(int i=0;i<4;i++)
