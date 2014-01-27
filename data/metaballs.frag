@@ -69,11 +69,31 @@ bool intersect(
 	// hint: use ray.origin, ray.direction, blob.position, blob.radius
 	// hint: make it fast (if you like)! ;)
 
-	// ...
+	// intersection of a sphere (x²+y²+z²=r²)
+	//   (first we shifted the sphere to (0,0,0))
+	// and a line (vecX = vecOrigin + t*vecDirection):
+	// substitude x, y and z and resolve for t.
+	// you will get the formula below 
+
+	vec3 rayOffset = ray.origin - blob.position;
+	float a = dot(ray.direction, ray.direction);
+	vec3 helper = ray.direction * rayOffset;
+	float b = 2*(helper.x + helper.y + helper.z);
+	float c = dot(rayOffset, rayOffset) - pow(blob.radius,2);
+
+	// no solutions
+	if (pow(b,2) < 4*a*c)
+		return false;
+
+	float d = sqrt(pow(b,2)-4*a*c);
+	float divi = 2*a;
+	t0 = (-b-d)/divi;
+	t1 = (-b+d)/divi;
+	
+	// sphere in wrong direction
+	return (t0>0) && (t1>0);
 
 	// Task_5_1 - ToDo End
-	
-	return false;
 }
 
 bool rcast(in Ray ray, out vec3 normal, out Material material, out float t)
@@ -93,19 +113,17 @@ bool rcast(in Ray ray, out vec3 normal, out Material material, out float t)
 
 	for(int i = 0; i < SIZE; ++i)
 	{
-		float t0; // = ?
-		float t1; // = ?
-	
-		// ...
+		float t0;
+		float t1;
 
-		if(intersect(blobs[i], ray, t0, t1) /* todo, more? */)
+		if(intersect(blobs[i], ray, t0, t1) && (t0<t))
 		{
-			// t = ?;
-			// normal = ?;
+			t = t0;
+			normal = normalize(ray.origin+t0*ray.direction-blobs[i].position);
 			// Task 5_2: material = ?;
 		}
 	}
-	return false; // ? 
+	return t<INFINITY;
 	
 	// ToDo: End Task 5_1
 }
