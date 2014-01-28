@@ -77,8 +77,7 @@ bool intersect(
 
 	vec3 rayOffset = ray.origin - blob.position;
 	float a = dot(ray.direction, ray.direction);
-	vec3 helper = ray.direction * rayOffset;
-	float b = 2*(helper.x + helper.y + helper.z);
+	float b = 2*dot(ray.direction, rayOffset);
 	float c = dot(rayOffset, rayOffset) - pow(blob.radius,2);
 
 	// no solutions
