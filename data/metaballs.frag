@@ -119,7 +119,7 @@ bool rcast(in Ray ray, out vec3 normal, out Material material, out float t)
 		{
 			t = t0;
 			normal = normalize(ray.origin+t0*ray.direction-blobs[i].position);
-			// Task 5_2: material = ?;
+			material = materials[i];
 		}
 	}
 	return t<INFINITY;
