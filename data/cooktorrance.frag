@@ -58,7 +58,7 @@ vec3 CookTorrance(in vec3 V, in vec3 N, in vec3 L, in Material m, in vec3 R, in 
 	
 	// hint: R is reflection (e.g., ray in envmap)
 	float rs = (fresnel(VdotH, m.sr.w)*roughness(NdotH, m.dr.w)*geom(NdotH, NdotV, VdotH, NdotL))/(NdotV*NdotL);
-	return NdotL*(m.sr.xyz*rs + m.dr.xyz)*0.75+m.dr.xyz*ambient*0.25;
+	return (NdotL*((m.sr.xyz)*rs + m.dr.xyz)*0.75+m.dr.xyz*ambient*0.25)*(1-m.sr.w*0.5)+R*m.sr.w*0.5;
 
 	// geom(...) * fresnel(...) * roughness(...) ...
 	// ...
