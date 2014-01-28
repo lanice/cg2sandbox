@@ -65,7 +65,7 @@ vec3 CookTorrance(in vec3 V, in vec3 N, in vec3 L, in Material m, in vec3 R, in 
 
 	vec3 color = NdotL*(m.sr.xyz*rs + m.dr.xyz);
 	color = color*0.8 + ambient*0.2*m.dr.xyz;
-	reflectionFactor = min(m.dr.w+0.65,1.0);
+	float reflectionFactor = min(m.dr.w+0.65,1.0);
 	color = color*reflectionFactor + R*(1-reflectionFactor);
 	return color;
 
