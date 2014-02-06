@@ -3,7 +3,7 @@
 const float INFINITY = 1e+4;
 
 const int SIZE = 3;
-const int MAX_LEVEL = 10;
+const int MAX_LEVEL = 40;
 const float THRESHOLD = 0.66;
 
 struct Sphere
@@ -214,10 +214,27 @@ bool trace(in Ray ray, out vec3 normal, out Material material, out float t)
 	}
 
 	if(tFar == tNear)
-		tNear -= 0.1;
+		tNear -= 0.01;
 
-	while(tNear<tFar && energy(tNear, ray)<1.0) tNear += 0.05;
-	if (tNear<tFar) result = true;
+	float tDist;
+	for (int i = 0; i < 2; ++i)
+	{
+		if (tNear == tFar) break;
+
+		tDist = (tFar-tNear)/MAX_LEVEL;
+
+		// step further until we are in a blob
+		while(tNear < tFar && energy(tNear, ray) < 1.0) tNear += tDist;
+
+		// range limitation
+		tFar = tNear;
+
+		// step into opposite direction (with much more granular steps) until we are out again
+		while(energy(tNear, ray) > 1.0) tNear -= tDist/MAX_LEVEL;
+	}
+
+	// check if we hit a blob
+	if (tNear < tFar) result = true;
 
 	t = tNear;
 	interp(ray.origin+t*ray.direction, normal, material);
