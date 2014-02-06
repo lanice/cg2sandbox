@@ -68,18 +68,18 @@ void main()
 		vec3 v[2];
 
 		// ...
-
-		// e.g. use ray[1]... ray[2]...
-		//ray[1].direction = reflect(ray[0].direction, n[0]);
-		//ray[1].origin = ray[0].origin + t*ray[0].direction;
 		vec3 R;
+		// e.g. use ray[1]... ray[2]...
+		ray[1].direction = reflect(ray[0].direction, n[0]);
+		ray[1].origin = ray[0].origin + t*ray[0].direction;
 	
-		// if(trace(ray[1], n[1], m[1], t))
-		// {
-		// 	R = CookTorrance(-ray[1].direction, n[1], l, m[1], R, ambient);
-		// }
-		// else
-		// 	R = texture(envmap, ray[1].direction).xyz;
+		if(trace(ray[1], n[1], m[1], t))
+		{
+			R = texture(envmap, reflect(ray[1].direction, n[1])).xyz;
+			R = CookTorrance(-ray[1].direction, n[1], l, m[1], R, ambient);
+		}
+		else
+			R = texture(envmap, ray[1].direction).xyz;
 
 		c = CookTorrance(-ray[0].direction, n[0], l, m[0], R, ambient);
 		lum = 1.0;
