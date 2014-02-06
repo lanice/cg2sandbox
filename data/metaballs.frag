@@ -3,6 +3,7 @@
 const float INFINITY = 1e+4;
 
 const int SIZE = 16;
+const int MAX_LEVEL = 10;
 const float THRESHOLD = 0.66;
 
 struct Sphere
@@ -122,6 +123,7 @@ bool rcast(in Ray ray, out vec3 normal, out Material material, out float t)
 			material = materials[i];
 		}
 	}
+
 	return t<INFINITY;
 	
 	// ToDo: End Task 5_1
@@ -133,6 +135,14 @@ bool rcast(in Ray ray, out vec3 normal, out Material material, out float t)
 // ... your helper functions
 
 // ... more ...
+
+float energy(float t, Ray ray){
+	float result = 0.0;
+	for(int i = 0; i < SIZE; ++i){
+		result += pow(blobs[i].radius/(length(ray.origin+t*ray.direction - blobs[i].position)),5);
+	}
+	return result;
+}
 
 bool trace(in Ray ray, out vec3 normal, out Material material, out float t)
 {
@@ -151,8 +161,73 @@ bool trace(in Ray ray, out vec3 normal, out Material material, out float t)
 	// your shader should terminate!
 
 	// return true if iso surface was hit, fals if not
+	
+	float tNear = 100000.0;
+	float tFar =  0.0;
+	float tNearSphere = 100000.0;
+	float tFarSphere = 0.0;
+	bool result = false;
+	float minRadius = INFINITY;
 
-	return false; 
+	for(int i = 0; i < SIZE; ++i){
+		minRadius = mix(blobs[i].radius, minRadius, step(minRadius, blobs[i].radius));
+		float t0;
+		float t1;
+
+		// distance of sphere from origin in ray direction
+		float tSphereDist = dot(normalize(ray.direction), blobs[i].position-ray.origin)/length(ray.direction);
+
+		// bring in the radius
+		float tMaybeNearer = tSphereDist-blobs[i].radius/length(ray.direction);
+		float tMaybeFarther = tSphereDist+blobs[i].radius/length(ray.direction);
+		tNearSphere = mix(tNearSphere, tMaybeNearer, step(tMaybeNearer, tNearSphere));
+		tFarSphere = mix(tMaybeFarther, tFarSphere, step(tMaybeFarther, tFarSphere));
+
+		if(intersect(blobs[i], ray, t0, t1)){
+			tFar = mix(t1, tFar, step(tNear, t0));
+			tNear = mix(t0, tNear, step(tNear, t0));
+		}
+	}
+
+	//if a sphere was intersected, take intersecion points 
+	// else take nearest and farthest z-component (relative to ray) of spheres
+	tNear = mix(tNear, tNearSphere, step(100000.0,tNear));
+	tFar = mix(tFar, tFarSphere, step(tFar, 0.0));
+
+	int level = 0;
+	float nearEnergy = energy(tNear, ray);
+	float farEnergy = energy(tFar, ray);
+	float tPreNear = tNear;
+	float tPreFar = tFar;
+
+	while(level<MAX_LEVEL){
+		if(nearEnergy>THRESHOLD && nearEnergy<THRESHOLD+1.0)
+			return true;
+		if(nearEnergy > 1.0){
+			float dummy	= tFar;
+			tFar = tNear;
+			tNear = min(tNear-(dummy-tNear)/2, minRadius);
+		}else{
+			if(farEnergy < 1.0){
+				tFar -= 2*minRadius;
+			}else{
+				tNear = (tNear+tFar)/2;
+			}
+		}
+		//if tNear was in and out at least once
+		if(sign(tPreNear) != sign(tNear)){
+			tFar = max(tNear, tPreNear);
+			tNear = min(tNear, tPreNear);
+		}
+
+		tPreNear = tNear;
+		nearEnergy = energy(tNear, ray);
+		farEnergy = energy(tFar, ray);
+		++level;
+	}
+
+	t = energy(tNear,ray)*100000;
+	return result;
 }
 
 // Task_5_3 - ToDo End

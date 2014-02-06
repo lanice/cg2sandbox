@@ -73,18 +73,21 @@ void main()
 		
 		vec3 R;
 	
-		if(trace(ray[1], n[1], m[1], t))
-		{
-			R = vec3(0.0); // CookTorrance(...);
-		}
-		else
-			R = texture(envmap, ray[1].direction).xyz;
+		// if(trace(ray[1], n[1], m[1], t))
+		// {
+		// 	R = vec3(0.0); // CookTorrance(...);
+		// }
+		// else
+		// 	R = texture(envmap, ray[1].direction).xyz;
 
 		c = vec3(0.0); // CookTorrance(...);
+		c = vec3(t);
+		lum = 1.0;
 	}
 	else
 	{
 		c = texture(envmap, ray[0].direction).xyz;
+		lum = 1.0;
 		// lum = ;
 	}	
 	
