@@ -3,7 +3,7 @@
 const float INFINITY = 1e+4;
 
 const int SIZE = 16;
-const int MAX_LEVEL = 10;
+const int MAX_LEVEL = 60;
 const float THRESHOLD = 0.66;
 
 struct Sphere
@@ -144,6 +144,10 @@ float energy(float t, Ray ray){
 	return result;
 }
 
+void interp(in vec3 pos, out vec3 normal, out Material material){
+
+}
+
 bool trace(in Ray ray, out vec3 normal, out Material material, out float t)
 {
 	// Task_5_3 - ToDo Begin
@@ -167,10 +171,8 @@ bool trace(in Ray ray, out vec3 normal, out Material material, out float t)
 	float tNearSphere = 100000.0;
 	float tFarSphere = 0.0;
 	bool result = false;
-	float minRadius = INFINITY;
 
 	for(int i = 0; i < SIZE; ++i){
-		minRadius = mix(blobs[i].radius, minRadius, step(minRadius, blobs[i].radius));
 		float t0;
 		float t1;
 
@@ -199,6 +201,7 @@ bool trace(in Ray ray, out vec3 normal, out Material material, out float t)
 	float farEnergy = energy(tFar, ray);
 	float tPreNear = tNear;
 	float tPreFar = tFar;
+	float minStep = (tFar-tNear)/10;
 
 	while(level<MAX_LEVEL){
 		if(nearEnergy>THRESHOLD && nearEnergy<THRESHOLD+1.0)
@@ -206,12 +209,12 @@ bool trace(in Ray ray, out vec3 normal, out Material material, out float t)
 		if(nearEnergy > 1.0){
 			float dummy	= tFar;
 			tFar = tNear;
-			tNear = min(tNear-(dummy-tNear)/2, minRadius);
+			tNear -= minStep;
 		}else{
 			if(farEnergy < 1.0){
-				tFar -= 2*minRadius;
+				tFar -= minStep;
 			}else{
-				tNear = (tNear+tFar)/2;
+				tNear += minStep;
 			}
 		}
 		//if tNear was in and out at least once
@@ -223,6 +226,7 @@ bool trace(in Ray ray, out vec3 normal, out Material material, out float t)
 		tPreNear = tNear;
 		nearEnergy = energy(tNear, ray);
 		farEnergy = energy(tFar, ray);
+		//minStep = (tFar-tNear)/1.2;
 		++level;
 	}
 
