@@ -218,7 +218,9 @@ bool trace(in Ray ray, out vec3 normal, out Material material, out float t)
 	if(tFar == tNear)
 		tFar += 0.0001;
 
-	while(energy(tNear, ray)>1.0) tNear -= 0.1;
+	tNear = 0.0;
+
+	while(energy(tNear, ray)>1.0) tNear -= 0.5;
 	while(tNear<tFar && energy(tNear, ray)<1.0) tNear += 0.1;
 	if (tNear<tFar) result = true;
 
