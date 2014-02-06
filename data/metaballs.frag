@@ -2,8 +2,8 @@
 
 const float INFINITY = 1e+4;
 
-const int SIZE = 16;
-const int MAX_LEVEL = 60;
+const int SIZE = 3;
+const int MAX_LEVEL = 10;
 const float THRESHOLD = 0.66;
 
 struct Sphere
@@ -139,13 +139,33 @@ bool rcast(in Ray ray, out vec3 normal, out Material material, out float t)
 float energy(float t, Ray ray){
 	float result = 0.0;
 	for(int i = 0; i < SIZE; ++i){
-		result += pow(blobs[i].radius/(length(ray.origin+t*ray.direction - blobs[i].position)),5);
+		vec3 r = ray.origin+t*ray.direction - blobs[i].position;
+		float q = dot(r,r);
+		if(q == 0) return 2.0;
+		result += blobs[i].radius/q;
 	}
 	return result;
 }
 
 void interp(in vec3 pos, out vec3 normal, out Material material){
+	material.sr = vec4(0.0);
+	material.dr = vec4(0.0);
+	normal = vec3(0.0);
 
+	float energyFactor = 0.0;
+
+	for(int i = 0; i < SIZE; ++i){
+		vec3 r = pos - blobs[i].position;
+		float q = dot(r,r);
+		float factor = blobs[i].radius/q;
+		material.sr += factor*materials[i].sr;
+		material.dr += factor*materials[i].dr;
+		normal += factor*(normalize(pos-blobs[i].position));
+		energyFactor += factor;
+	}
+	normal = normalize(normal);
+	material.sr /= energyFactor;
+	material.dr /= energyFactor;
 }
 
 bool trace(in Ray ray, out vec3 normal, out Material material, out float t)
@@ -166,9 +186,9 @@ bool trace(in Ray ray, out vec3 normal, out Material material, out float t)
 
 	// return true if iso surface was hit, fals if not
 	
-	float tNear = 100000.0;
+	float tNear = INFINITY;
 	float tFar =  0.0;
-	float tNearSphere = 100000.0;
+	float tNearSphere = INFINITY;
 	float tFarSphere = 0.0;
 	bool result = false;
 
@@ -193,44 +213,17 @@ bool trace(in Ray ray, out vec3 normal, out Material material, out float t)
 
 	//if a sphere was intersected, take intersecion points 
 	// else take nearest and farthest z-component (relative to ray) of spheres
-	tNear = mix(tNear, tNearSphere, step(100000.0,tNear));
+	tNear = mix(tNear, tNearSphere, step(INFINITY,tNear));
 	tFar = mix(tFar, tFarSphere, step(tFar, 0.0));
+	if(tFar == tNear)
+		tFar += 0.0001;
 
-	int level = 0;
-	float nearEnergy = energy(tNear, ray);
-	float farEnergy = energy(tFar, ray);
-	float tPreNear = tNear;
-	float tPreFar = tFar;
-	float minStep = (tFar-tNear)/10;
+	while(energy(tNear, ray)>1.0) tNear -= 0.1;
+	while(tNear<tFar && energy(tNear, ray)<1.0) tNear += 0.1;
+	if (tNear<tFar) result = true;
 
-	while(level<MAX_LEVEL){
-		if(nearEnergy>THRESHOLD && nearEnergy<THRESHOLD+1.0)
-			return true;
-		if(nearEnergy > 1.0){
-			float dummy	= tFar;
-			tFar = tNear;
-			tNear -= minStep;
-		}else{
-			if(farEnergy < 1.0){
-				tFar -= minStep;
-			}else{
-				tNear += minStep;
-			}
-		}
-		//if tNear was in and out at least once
-		if(sign(tPreNear) != sign(tNear)){
-			tFar = max(tNear, tPreNear);
-			tNear = min(tNear, tPreNear);
-		}
-
-		tPreNear = tNear;
-		nearEnergy = energy(tNear, ray);
-		farEnergy = energy(tFar, ray);
-		//minStep = (tFar-tNear)/1.2;
-		++level;
-	}
-
-	t = energy(tNear,ray)*100000;
+	t = tNear;
+	interp(ray.origin+t*ray.direction, normal, material);
 	return result;
 }
 
