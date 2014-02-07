@@ -213,11 +213,10 @@ bool trace(in Ray ray, out vec3 normal, out Material material, out float t)
 		}
 	}
 
-	if(tFar == tNear)
-		tNear -= 0.01;
+	if(tFar == tNear) return false;
 
 	float tDist;
-	for (int i = 0; i < 2; ++i)
+	for (int i = 0; i < MAX_LEVEL; ++i)
 	{
 		if (tNear == tFar) break;
 
@@ -225,6 +224,8 @@ bool trace(in Ray ray, out vec3 normal, out Material material, out float t)
 
 		// step further until we are in a blob
 		while(tNear < tFar && energy(tNear, ray) < 1.0) tNear += tDist;
+
+		if (energy(tNear, ray) == 1.0) break;
 
 		// range limitation
 		tFar = tNear;
