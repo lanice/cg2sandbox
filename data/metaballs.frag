@@ -141,15 +141,13 @@ bool rcast(in Ray ray, out vec3 normal, out Material material, out float t)
 float energy(float t, Ray ray){
 	float result = 0.0;
 	for(int i = 0; i < intersectCount; ++i){
-		Sphere blob;
-		blob.radius = blobs[intersectBlobs[i]].radius;
-		blob.position = blobs[intersectBlobs[i]].position;
+		Sphere blob = blobs[intersectBlobs[i]];
 		vec3 r = ray.origin+t*ray.direction - blob.position;
-		float q = dot(r,r)*dot(r,r);
+		float q = dot(r,r);
 		if(q == 0) return 2.0;
-		result += blob.radius/(q*q);
+		result += blob.radius/pow(q,4);
 	}
-	return smoothstep(0.4,1.6,result);
+	return smoothstep(0.6,1.4,result);
 }
 
 void interp(in vec3 pos, out vec3 normal, out Material material){
@@ -160,12 +158,10 @@ void interp(in vec3 pos, out vec3 normal, out Material material){
 	float energyFactor = 0.0;
 
 	for(int i = 0; i < intersectCount; ++i){
-		Sphere blob;
-		blob.radius = blobs[intersectBlobs[i]].radius;
-		blob.position = blobs[intersectBlobs[i]].position;
+		Sphere blob = blobs[intersectBlobs[i]];
 		vec3 r = pos - blob.position;
-		float q = dot(r,r)*dot(r,r);
-		float factor = blob.radius/(q*q);
+		float q = dot(r,r);
+		float factor = blob.radius/pow(q,4);
 		material.sr += factor*materials[intersectBlobs[i]].sr;
 		material.dr += factor*materials[intersectBlobs[i]].dr;
 		normal += factor*(normalize(pos-blob.position));
@@ -233,6 +229,8 @@ bool trace(in Ray ray, out vec3 normal, out Material material, out float t)
 		// step into opposite direction (with much more granular steps) until we are out again
 		while(energy(tNear, ray) > 1.0) tNear -= tDist/MAX_LEVEL;
 	}
+
+ 	while(tNear<tFar && energy(tNear, ray)<1.0) tNear += 0.01;
 
 	// check if we hit a blob
 	if (tNear < tFar) result = true;
