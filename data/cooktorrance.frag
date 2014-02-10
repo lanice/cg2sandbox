@@ -57,11 +57,13 @@ vec3 CookTorrance(in vec3 V, in vec3 N, in vec3 L, in Material m, in vec3 R, in 
 	// Task_5_2 - ToDo Begin
 	
 	// hint: R is reflection (e.g., ray in envmap)
-	float rs = mix(
-		(fresnel(VdotH, m.sr.w)*roughness(NdotH, m.dr.w)*geom(NdotH, NdotV, VdotH, NdotL))/(NdotV*NdotL),
-		0,
+	float divisor = mix(
+		NdotV*NdotL,
+		0.01,
 		step(NdotV*NdotL,0.0)
 	);
+	float rs = 
+		(fresnel(VdotH, m.sr.w)*roughness(NdotH, m.dr.w)*geom(NdotH, NdotV, VdotH, NdotL))/divisor;
 
 	vec3 color = NdotL*(m.sr.xyz*rs + m.dr.xyz);
 	color = color*0.8 + ambient*0.2*m.dr.xyz;
