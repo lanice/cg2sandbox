@@ -27,6 +27,9 @@ struct Ray
 
 Sphere blobs[16];
 Material materials[16];
+int intersectBlobIndex[16];
+float influence[16];
+int intersectCount;
 
 void cache(
 	sampler2D positions
@@ -138,11 +141,13 @@ bool rcast(in Ray ray, out vec3 normal, out Material material, out float t)
 
 float energy(float t, Ray ray){
 	float result = 0.0;
-	for(int i = 0; i < SIZE; ++i){
-		vec3 r = ray.origin+t*ray.direction - blobs[i].position;
+	for(int i = 0; i < intersectCount; ++i){
+		Sphere blob = blobs[intersectBlobIndex[i]];
+		vec3 r = ray.origin+t*ray.direction - blob.position;
 		float q = dot(r,r);
 		if(q == 0) return 2.0;
-		result += blobs[i].radius/q;
+		influence[i] = blob.radius/q;
+		result += influence[i];
 	}
 	return result;
 }
@@ -154,14 +159,12 @@ void interp(in vec3 pos, out vec3 normal, out Material material){
 
 	float energyFactor = 0.0;
 
-	for(int i = 0; i < SIZE; ++i){
-		vec3 r = pos - blobs[i].position;
-		float q = dot(r,r);
-		float factor = blobs[i].radius/q;
-		material.sr += factor*materials[i].sr;
-		material.dr += factor*materials[i].dr;
-		normal += factor*(normalize(pos-blobs[i].position));
-		energyFactor += factor;
+	for(int i = 0; i < intersectCount; ++i){
+		Sphere blob = blobs[intersectBlobIndex[i]];
+		material.sr += influence[i]*materials[intersectBlobIndex[i]].sr;
+		material.dr += influence[i]*materials[intersectBlobIndex[i]].dr;
+		normal += influence[i]*(normalize(pos-blob.position));
+		energyFactor += influence[i];
 	}
 	normal = normalize(normal);
 	material.sr /= energyFactor;
@@ -192,41 +195,32 @@ bool trace(in Ray ray, out vec3 normal, out Material material, out float t)
 	float tFarSphere = 0.0;
 	bool result = false;
 
+
+	intersectCount = 0;
 	for(int i = 0; i < SIZE; ++i){
 		float t0;
 		float t1;
+		Sphere blob = blobs[i];
+		blob.radius *= 2;
 
-		// distance of sphere from origin in ray direction
-		float tSphereDist = dot(normalize(ray.direction), blobs[i].position-ray.origin)/length(ray.direction);
-
-		// bring in the radius
-		float tMaybeNearer = tSphereDist-blobs[i].radius/length(ray.direction);
-		float tMaybeFarther = tSphereDist+blobs[i].radius/length(ray.direction);
-		tNearSphere = mix(tNearSphere, tMaybeNearer, step(tMaybeNearer, tNearSphere));
-		tFarSphere = mix(tMaybeFarther, tFarSphere, step(tMaybeFarther, tFarSphere));
-
-		if(intersect(blobs[i], ray, t0, t1)){
-			tFar = mix(t1, tFar, step(tNear, t0));
-			tNear = mix(t0, tNear, step(tNear, t0));
+		if(intersect(blob,ray,t0,t1)){
+			intersectBlobIndex[intersectCount++] = i;
+			tNear = mix(tNear, t0, step(t0, tNear));
+			tFar = mix(tFar, t1, step(tFar, t1));
 		}
 	}
 
 	//if a sphere was intersected, take intersecion points 
 	// else take nearest and farthest z-component (relative to ray) of spheres
-	tNear = mix(tNear, tNearSphere, step(INFINITY,tNear));
-	tFar = mix(tFar, tFarSphere, step(tFar, 0.0));
-	if(tFar == tNear)
-		tFar += 0.0000001;
-
-	tNear = 0.0;
-
+	if(tFar <= tNear)
+		return false;
 
 	float tDist;
 	for (int i = 0; i < 2; ++i)
 	{
 		if (tNear == tFar) break;
 
-		tDist = (tFar-tNear)/MAX_LEVEL;
+		tDist = max(0.0000001,(tFar-tNear)/MAX_LEVEL);
 
 		// step further until we are in a blob
 		while(tNear < tFar && energy(tNear, ray) < 1.0) tNear += tDist;
