@@ -178,7 +178,7 @@ bool trace(in Ray ray, out vec3 normal, out Material material, out float t)
 {
 	// Task_5_3 - ToDo Begin
 
-	// find nearest and farthest intersection for all metaballs 
+	// find nearest and farthest intersection for all metaballs
 	// hint: use for loop, INFINITE, SIZE, intersect, min and max...
 
 	// ...
@@ -204,17 +204,20 @@ bool trace(in Ray ray, out vec3 normal, out Material material, out float t)
 		float t0;
 		float t1;
 		Sphere blob = blobs[i];
+		// define "border-blob"
 		blob.radius *= 3;
 
-		if(intersect(blob,ray,t0,t1)){
+		Ray dummyRay = ray;
+		float distToBorder = blob.radius*3 - length(ray.origin-blob.position);
+		dummyRay.origin = mix(ray.origin, ray.origin - normalize(ray.direction)*(distToBorder+0.1), step(0.0, distToBorder));
+
+		if(intersect(blob, dummyRay, t0, t1)){
 			intersectBlobIndex[intersectCount++] = i;
 			tNear = mix(tNear, t0, step(t0, tNear));
 			tFar = mix(tFar, t1, step(tFar, t1));
 		}
 	}
 
-	//if a sphere was intersected, take intersecion points 
-	// else take nearest and farthest z-component (relative to ray) of spheres
 	if(tFar <= tNear)
 		return false;
 
@@ -235,10 +238,7 @@ bool trace(in Ray ray, out vec3 normal, out Material material, out float t)
 		while(energy(tNear, ray) >= 1.0) tNear -= tDist/MAX_LEVEL;
 	}
 
-	// while(tNear<tFar && energy(tNear, ray)<1.0)
-	// 	tNear += 0.1;
-
-	// check if we hit a blob
+	// check if we hit a "border"-blob
 	if (tNear < tFar) result = true;
 
 	t = tNear;
