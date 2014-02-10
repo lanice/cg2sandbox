@@ -146,7 +146,8 @@ float energy(float t, Ray ray){
 		vec3 r = ray.origin+t*ray.direction - blob.position;
 		float q = dot(r,r);
 		if(q == 0) return 2.0;
-		influence[i] = blob.radius/q;
+
+		influence[i] = smoothstep(blob.radius/dot(3*blob.radius,3*blob.radius),1.0,blob.radius/q);
 		result += influence[i];
 	}
 	return result;
@@ -167,8 +168,10 @@ void interp(in vec3 pos, out vec3 normal, out Material material){
 		energyFactor += influence[i];
 	}
 	normal = normalize(normal);
-	material.sr /= energyFactor;
-	material.dr /= energyFactor;
+	if(energyFactor>0.0){
+		material.sr /= energyFactor;
+		material.dr /= energyFactor;
+	}
 }
 
 bool trace(in Ray ray, out vec3 normal, out Material material, out float t)
@@ -201,7 +204,7 @@ bool trace(in Ray ray, out vec3 normal, out Material material, out float t)
 		float t0;
 		float t1;
 		Sphere blob = blobs[i];
-		blob.radius *= 2;
+		blob.radius *= 3;
 
 		if(intersect(blob,ray,t0,t1)){
 			intersectBlobIndex[intersectCount++] = i;
@@ -220,7 +223,7 @@ bool trace(in Ray ray, out vec3 normal, out Material material, out float t)
 	{
 		if (tNear == tFar) break;
 
-		tDist = max(0.0000001,(tFar-tNear)/MAX_LEVEL);
+		tDist = max(0.1,(tFar-tNear)/MAX_LEVEL);
 
 		// step further until we are in a blob
 		while(tNear < tFar && energy(tNear, ray) < 1.0) tNear += tDist;
@@ -231,6 +234,9 @@ bool trace(in Ray ray, out vec3 normal, out Material material, out float t)
 		// step into opposite direction (with much more granular steps) until we are out again
 		while(energy(tNear, ray) >= 1.0) tNear -= tDist/MAX_LEVEL;
 	}
+
+	// while(tNear<tFar && energy(tNear, ray)<1.0)
+	// 	tNear += 0.1;
 
 	// check if we hit a blob
 	if (tNear < tFar) result = true;

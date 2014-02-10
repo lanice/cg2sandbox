@@ -71,7 +71,7 @@ void main()
 		vec3 R;
 		// e.g. use ray[1]... ray[2]...
 		ray[1].direction = reflect(ray[0].direction, n[0]);
-		ray[1].origin = ray[0].origin + t*ray[0].direction+ray[1].direction*0.4;
+		ray[1].origin = ray[0].origin + t*ray[0].direction+ray[1].direction*0.001;
 	
 		if(trace(ray[1], n[1], m[1], t))
 		{
